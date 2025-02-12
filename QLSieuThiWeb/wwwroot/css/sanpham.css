@@ -1,0 +1,230 @@
+.table th {
+    background-color: #f8f9fa;
+}
+
+.btn-primary {
+    background-color: #0066cc;
+    border-color: #0066cc;
+}
+
+.btn-primary:hover {
+    background-color: #0052a3;
+    border-color: #0052a3;
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.toast {
+    opacity: 1 !important;
+}
+
+.table-responsive {
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.card {
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.form-control:focus {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 0.2rem rgba(0,102,204,0.25);
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+#search-box {
+    position: relative;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    height: 40px;
+}
+
+#search-box #search-text {
+    height: 100%;
+    width: 30vh;
+    border: none;
+    outline: none;
+    background: none;
+    width: 0;
+    padding: 0;
+    border-radius: 20px;
+}
+
+#search-box:hover #search-text,
+#search-box #search-text:valid {
+    width: 300px;
+    padding: 0 0 0 10px;
+    transition: 2s;
+}
+
+#search-box button {
+    background: whitesmoke;
+    border: none;
+    padding: 8px;
+    height: 32px;
+    width: 32px;
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 14px;
+    margin: auto 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#search-box button:hover {
+    background: #e0e0e0;
+}
+
+#search-box:hover {
+    border-color: #aaa;
+}
+
+#search-box button i {
+    font-size: 14px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table-responsive {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead {
+    background-color: #f8f9fa;
+}
+
+.table thead th {
+    border-top: none;
+    border-bottom: 3px solid #b0b0b0;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    color: #495057;
+    padding: 15px;
+}
+
+.table tbody tr {
+    transition: all 0.3s ease;
+    border-top: 2px solid #dee2e6;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+    border-bottom: 2px solid #819ebc;
+}
+
+.btn-warning {
+    padding: 5px 10px;
+    color: white;
+    background-color: #ffc107;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-warning:hover {
+    background-color: #ffb300;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    padding: 5px 10px;
+    background-color: #dc3545;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-radius: 15px 15px 0 0;
+    padding: 20px;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    background-color: #f8f9fa;
+    border-radius: 0 0 15px 15px;
+    padding: 20px;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.toast {
+    background-color: white;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+.toast-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 10px 10px 0 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.table tbody tr {
+    animation: fadeIn 0.3s ease-in-out;
+}

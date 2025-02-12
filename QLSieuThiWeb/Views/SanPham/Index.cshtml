@@ -1,0 +1,131 @@
+@model List<QLSieuThiWeb.Models.sanPham>
+@{
+    ViewData["Title"] = "Quản Lý Sản Phẩm";
+}
+
+<link rel="stylesheet" href="~/css/navbar.css" />
+<link rel="stylesheet" href="~/css/sanpham.css" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<partial name="_NavbarPartial" />
+
+<div class="container-fluid mt-4">
+    <h2>Quản Lý Sản Phẩm</h2>
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">Thêm sản phẩm mới</button>
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>MÃ SP</th>
+                        <th>TÊN SẢN PHẨM</th>
+                        <th>SỐ LƯỢNG</th>
+                        <th>GIÁ</th>
+                        <th>THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.maSP</td>
+                            <td>@item.tenSP</td>
+                            <td>@item.soLuong</td>
+                            <td>@item.gia</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" onclick="suaSanPham('@item.maSP')">Sửa</button>
+                                <button class="btn btn-danger btn-sm" onclick="xoaSanPham('@item.maSP')">Xóa</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Sản Phẩm -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm Sản Phẩm Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemSP">
+                    <div class="mb-3">
+                        <label class="form-label">Mã SP</label>
+                        <input type="text" class="form-control" id="addMaSP" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên SP</label>
+                        <input type="text" class="form-control" id="addTenSP" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số Lượng</label>
+                        <input type="number" class="form-control" id="addSoLuong" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giá</label>
+                        <input type="number" class="form-control" id="addGia" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="btnLuuMoi">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa Sản Phẩm -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sửa Sản Phẩm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editMaSP">
+                <div class="mb-3">
+                    <label class="form-label">Tên SP</label>
+                    <input type="text" class="form-control" id="editTenSP">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Số Lượng</label>
+                    <input type="number" class="form-control" id="editSoLuong">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Giá</label>
+                    <input type="number" class="form-control" id="editGia">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="luuCapNhat()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toastNotification" class="toast" role="alert">
+        <div class="toast-header">
+            <strong class="me-auto">Thông báo</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/sanpham.js"></script>
+}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> 

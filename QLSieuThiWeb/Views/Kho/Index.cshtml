@@ -1,0 +1,107 @@
+@{
+    ViewData["Title"] = "Quản Lý Kho";
+}
+
+<link rel="stylesheet" href="~/css/navbar.css" />
+<link rel="stylesheet" href="~/css/kho.css" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<partial name="_NavbarPartial" />
+
+@model List<QLSieuThiWeb.Models.sanPham>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Quản Lý Kho</h2>
+        <div class="d-flex align-items-center">
+            <div id="search-box" class="me-3">
+                <input type="text" id="search-text" required placeholder="Tìm kiếm sản phẩm...">
+                <button type="button" onclick="searchProducts()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>MÃ SP</th>
+                            <th>TÊN SẢN PHẨM</th>
+                            <th>SỐ LƯỢNG</th>
+                            <th>GIÁ</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.maSP</td>
+                                <td>@item.tenSP</td>
+                                <td>@item.soLuong</td>
+                                <td>@item.gia</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" onclick="capNhatSoLuong('@item.maSP')">
+                                        Cập nhật
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nhập Kho -->
+<div class="modal fade" id="stockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nhập Kho</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="stockForm">
+                    <div class="mb-3">
+                        <label class="form-label">Tên Sản Phẩm</label>
+                        <input type="text" class="form-control" id="TenSP" readonly>
+                        <input type="hidden" id="MaSP">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số Lượng Hiện Tại</label>
+                        <input type="text" class="form-control" id="SoLuongHienTai" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số Lượng Nhập Thêm</label>
+                        <input type="number" class="form-control" id="SoLuongNhap" min="1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="updateStock()">Nhập Kho</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toastNotification" class="toast" role="alert">
+        <div class="toast-header">
+            <strong class="me-auto">Thông báo</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/kho.js"></script>
+} 

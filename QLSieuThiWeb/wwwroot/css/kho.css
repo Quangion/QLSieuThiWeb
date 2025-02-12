@@ -1,0 +1,93 @@
+#search-box {
+    position: relative;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    height: 40px;
+}
+
+#search-box #search-text {
+    height: 100%;
+    width: 30vh;
+    border: none;
+    outline: none;
+    background: none;
+    width: 0;
+    padding: 0;
+    border-radius: 20px;
+}
+
+#search-box:hover #search-text,
+#search-box #search-text:valid {
+    width: 300px;
+    padding: 0 0 0 10px;
+    transition: 2s;
+}
+
+#search-box button {
+    background: whitesmoke;
+    border: none;
+    padding: 8px;
+    height: 32px;
+    width: 32px;
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 14px;
+    margin: auto 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#search-box button:hover {
+    background: #e0e0e0;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table-responsive {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead {
+    background-color: #f8f9fa;
+}
+
+.table thead th {
+    border-top: none;
+    border-bottom: 3px solid #b0b0b0;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    color: #495057;
+    padding: 15px;
+}
+
+.table tbody tr {
+    transition: all 0.3s ease;
+    border-top: 2px solid #dee2e6;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+} 
