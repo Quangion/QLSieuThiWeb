@@ -3,140 +3,120 @@ using Microsoft.Data.SqlClient;
 using QLSieuThiWeb.Models;
 using System.Data;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace QLSieuThiWeb.Controllers
 {
     public class SanPhamController : Controller
     {
         private readonly string _connectionString;
+        private readonly ILogger<SanPhamController> _logger;
 
-        public SanPhamController(IConfiguration configuration)
+        public SanPhamController(IConfiguration configuration, ILogger<SanPhamController> logger)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _logger = logger;
         }
 
         public IActionResult Index()
         {
-            var products = new List<sanPham>();
-            try
+            List<sanPham> danhSachSP = new List<sanPham>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                using (var conn = new SqlConnection(_connectionString))
+                conn.Open();
+                string query = "SELECT * FROM sanPham";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    conn.Open();
-                    using (var cmd = new SqlCommand("SELECT * FROM sanPham", conn))
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        using (var reader = cmd.ExecuteReader())
+                        while (reader.Read())
                         {
-                            while (reader.Read())
+                            sanPham sp = new sanPham
                             {
-                                products.Add(new sanPham
-                                {
-                                    maSP = reader["maSP"].ToString(),
-                                    tenSP = reader["tenSP"].ToString(),
-                                    soLuong = reader["soLuong"].ToString(),
-                                    gia = reader["gia"].ToString()
-                                });
-                            }
+                                maSP = reader["maSP"].ToString(),
+                                tenSP = reader["tenSP"].ToString(),
+                                soLuong = Convert.ToInt32(reader["soLuong"]),
+                                gia = Convert.ToDecimal(reader["gia"])
+                            };
+                            danhSachSP.Add(sp);
                         }
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-
-            return View(products);
+            return View(danhSachSP);
         }
 
-        [HttpPost]
-        public JsonResult GetAllProducts()
+        [HttpGet]
+        public IActionResult GetSanPham(string maSP)
         {
-            List<sanPham> sanPhams = new List<sanPham>();
-            try
+            _logger.LogInformation($"Lấy thông tin sản phẩm: {maSP}");
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
+                conn.Open();
+                string query = "SELECT * FROM sanPham WHERE maSP = @maSP";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM sanPham", conn))
+                    cmd.Parameters.AddWithValue("@maSP", maSP);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        if (reader.Read())
                         {
-                            while (reader.Read())
+                            var sp = new sanPham
                             {
-                                var sp = new sanPham();
-                                sp.maSP = reader["maSP"]?.ToString();
-                                sp.tenSP = reader["tenSP"]?.ToString();
-                                sp.soLuong = reader["soLuong"]?.ToString() ?? "0";
-                                sp.gia = reader["gia"]?.ToString() ?? "0";
-                                sanPhams.Add(sp);
-                            }
+                                maSP = reader["maSP"].ToString(),
+                                tenSP = reader["tenSP"].ToString(),
+                                soLuong = Convert.ToInt32(reader["soLuong"]),
+                                gia = Convert.ToDecimal(reader["gia"])
+                            };
+                            return Json(sp);
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Không tìm thấy sản phẩm: {maSP}");
+                            return Json(null);
                         }
                     }
                 }
-                return Json(sanPhams);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-                return Json(new { error = "Lỗi khi tải dữ liệu" });
             }
         }
 
         [HttpPost]
-        public IActionResult CheckMaSP([FromBody] string maSP)
+        public IActionResult ThemSanPham([FromBody] sanPham sp)
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
+                // Kiểm tra dữ liệu đầu vào
+                if (string.IsNullOrEmpty(sp.maSP) || string.IsNullOrEmpty(sp.tenSP))
                 {
-                    conn.Open();
-                    string query = "SELECT COUNT(*) FROM sanPham WHERE maSP = @maSP";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@maSP", maSP);
-                        int count = (int)cmd.ExecuteScalar();
-                        return Json(new { exists = count > 0 });
-                    }
+                    return Json(new { success = false, message = "Mã sản phẩm và tên sản phẩm không được để trống!" });
                 }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { error = ex.Message });
-            }
-        }
 
-        [HttpPost]
-        public IActionResult AddProduct([FromBody] sanPham sp)
-        {
-            try
-            {
+                // Kiểm tra mã sản phẩm đã tồn tại chưa
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    
-                    // Kiểm tra mã sản phẩm đã tồn tại
+
+                    // Kiểm tra trùng mã
                     string checkQuery = "SELECT COUNT(*) FROM sanPham WHERE maSP = @maSP";
                     using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
                     {
                         checkCmd.Parameters.AddWithValue("@maSP", sp.maSP);
-                        int count = (int)checkCmd.ExecuteScalar();
-                        if (count > 0)
+                        int exists = (int)checkCmd.ExecuteScalar();
+                        if (exists > 0)
                         {
                             return Json(new { success = false, message = "Mã sản phẩm đã tồn tại!" });
                         }
                     }
 
-                    // Nếu chưa tồn tại thì thêm mới
-                    string insertQuery = @"INSERT INTO sanPham (maSP, tenSP, soLuong, gia) 
-                                         VALUES (@maSP, @tenSP, @soLuong, @gia)";
-
+                    // Thêm sản phẩm mới
+                    string insertQuery = "INSERT INTO sanPham (maSP, tenSP, soLuong, gia) VALUES (@maSP, @tenSP, @soLuong, @gia)";
                     using (SqlCommand cmd = new SqlCommand(insertQuery, conn))
                     {
                         cmd.Parameters.AddWithValue("@maSP", sp.maSP);
-                        cmd.Parameters.AddWithValue("@tenSP", sp.tenSP ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@soLuong", sp.soLuong ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@gia", sp.gia ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@tenSP", sp.tenSP);
+                        cmd.Parameters.AddWithValue("@soLuong", sp.soLuong);
+                        cmd.Parameters.AddWithValue("@gia", sp.gia);
 
                         int result = cmd.ExecuteNonQuery();
                         if (result > 0)
@@ -150,6 +130,24 @@ namespace QLSieuThiWeb.Controllers
                     }
                 }
             }
+            catch (SqlException ex)
+            {
+                // Xử lý lỗi SQL cụ thể
+                string errorMessage = "Lỗi khi thêm sản phẩm: ";
+                switch (ex.Number)
+                {
+                    case 2627:  // Unique constraint error
+                        errorMessage += "Mã sản phẩm đã tồn tại!";
+                        break;
+                    case 547:   // Constraint violation
+                        errorMessage += "Dữ liệu không hợp lệ!";
+                        break;
+                    default:
+                        errorMessage += ex.Message;
+                        break;
+                }
+                return Json(new { success = false, message = errorMessage });
+            }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Lỗi khi thêm sản phẩm: " + ex.Message });
@@ -157,183 +155,17 @@ namespace QLSieuThiWeb.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateProduct([FromBody] sanPham sp)
+        public IActionResult CapNhatSanPham([FromBody] sanPham sp)
         {
+            _logger.LogInformation($"Bắt đầu cập nhật sản phẩm: {sp.maSP}");
+
             try
             {
                 using (SqlConnection conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-                    string query = @"UPDATE sanPham 
-                                   SET tenSP = @tenSP, 
-                                       soLuong = @soLuong, 
-                                       gia = @gia 
-                                   WHERE maSP = @maSP";
-
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@maSP", sp.maSP);
-                        cmd.Parameters.AddWithValue("@tenSP", sp.tenSP ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@soLuong", sp.soLuong ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@gia", sp.gia ?? (object)DBNull.Value);
-
-                        int result = cmd.ExecuteNonQuery();
-                        if (result > 0)
-                        {
-                            return Json(new { success = true, message = "Cập nhật sản phẩm thành công!" });
-                        }
-                        else
-                        {
-                            return Json(new { success = false, message = "Không tìm thấy sản phẩm để cập nhật!" });
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Lỗi khi cập nhật: " + ex.Message });
-            }
-        }
-
-        [HttpPost]
-        public IActionResult DeleteProduct([FromBody] string maSP)
-        {
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-                    string query = "DELETE FROM sanPham WHERE maSP = @maSP";
-
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@maSP", maSP);
-
-                        int result = cmd.ExecuteNonQuery();
-                        if (result > 0)
-                        {
-                            return Json(new { success = true, message = "Xóa sản phẩm thành công!" });
-                        }
-                        else
-                        {
-                            return Json(new { success = false, message = "Không tìm thấy sản phẩm để xóa!" });
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Lỗi khi xóa sản phẩm: " + ex.Message });
-            }
-        }
-
-        [HttpPost]
-        public JsonResult ThemSanPham(string maSP, string tenSP, string soLuong, string gia)
-        {
-            try
-            {
-                using (var conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-                    
-                    // Kiểm tra mã sản phẩm đã tồn tại chưa
-                    using (var cmdCheck = new SqlCommand("SELECT COUNT(*) FROM sanPham WHERE maSP = @maSP", conn))
-                    {
-                        cmdCheck.Parameters.AddWithValue("@maSP", maSP);
-                        int exists = (int)cmdCheck.ExecuteScalar();
-                        if (exists > 0)
-                        {
-                            return Json(new { success = false, message = "Mã sản phẩm đã tồn tại!" });
-                        }
-                    }
-
-                    // Thêm sản phẩm mới
-                    string query = "INSERT INTO sanPham (maSP, tenSP, soLuong, gia) VALUES (@maSP, @tenSP, @soLuong, @gia)";
-                    using (var cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@maSP", maSP);
-                        cmd.Parameters.AddWithValue("@tenSP", tenSP);
-                        cmd.Parameters.AddWithValue("@soLuong", soLuong);
-                        cmd.Parameters.AddWithValue("@gia", gia);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                return Json(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        public JsonResult XoaSanPham(string maSP)
-        {
-            try
-            {
-                using (var conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-                    string query = "DELETE FROM sanPham WHERE maSP = @maSP";
-                    using (var cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@maSP", maSP);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                return Json(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpGet]
-        public JsonResult GetSanPham(string maSP)
-        {
-            try
-            {
-                using (var conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-                    string query = "SELECT * FROM sanPham WHERE maSP = @maSP";
-                    using (var cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@maSP", maSP);
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                return Json(new
-                                {
-                                    maSP = reader["maSP"].ToString(),
-                                    tenSP = reader["tenSP"].ToString(),
-                                    soLuong = reader["soLuong"].ToString(),
-                                    gia = reader["gia"].ToString()
-                                });
-                            }
-                        }
-                    }
-                }
-                return Json(null);
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        public JsonResult CapNhatSanPham(sanPham sp)
-        {
-            try
-            {
-                using (var conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
                     string query = "UPDATE sanPham SET tenSP = @tenSP, soLuong = @soLuong, gia = @gia WHERE maSP = @maSP";
-                    using (var cmd = new SqlCommand(query, conn))
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@maSP", sp.maSP);
                         cmd.Parameters.AddWithValue("@tenSP", sp.tenSP);
@@ -346,7 +178,68 @@ namespace QLSieuThiWeb.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Lỗi khi cập nhật sản phẩm: {ex.Message}");
                 return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult XoaSanPham(string maSP)
+        {
+            try
+            {
+                // Kiểm tra mã sản phẩm có tồn tại
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Kiểm tra sản phẩm tồn tại
+                    string checkQuery = "SELECT COUNT(*) FROM sanPham WHERE maSP = @maSP";
+                    using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+                    {
+                        checkCmd.Parameters.AddWithValue("@maSP", maSP);
+                        int exists = (int)checkCmd.ExecuteScalar();
+                        if (exists == 0)
+                        {
+                            return Json(new { success = false, message = "Không tìm thấy sản phẩm để xóa!" });
+                        }
+                    }
+
+                    // Thực hiện xóa sản phẩm
+                    string deleteQuery = "DELETE FROM sanPham WHERE maSP = @maSP";
+                    using (SqlCommand cmd = new SqlCommand(deleteQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@maSP", maSP);
+                        int result = cmd.ExecuteNonQuery();
+                        if (result > 0)
+                        {
+                            return Json(new { success = true, message = "Xóa sản phẩm thành công!" });
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = "Không thể xóa sản phẩm!" });
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                // Xử lý lỗi SQL cụ thể
+                string errorMessage = "Lỗi khi xóa sản phẩm: ";
+                switch (ex.Number)
+                {
+                    case 547:   // Foreign key violation
+                        errorMessage += "Không thể xóa vì sản phẩm đang được sử dụng!";
+                        break;
+                    default:
+                        errorMessage += ex.Message;
+                        break;
+                }
+                return Json(new { success = false, message = errorMessage });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi xóa sản phẩm: " + ex.Message });
             }
         }
     }

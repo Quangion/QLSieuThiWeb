@@ -1,3 +1,146 @@
+// Khởi tạo biến toàn cục
+let isEdit = false;
+let productModal;
+
+// Khởi tạo khi trang đã load xong
+$(document).ready(function() {
+    console.log('Document ready');
+    
+    // Khởi tạo modal
+    productModal = new bootstrap.Modal(document.getElementById('productModal'));
+    
+    // Reset form khi đóng modal
+    $('#productModal').on('hidden.bs.modal', function() {
+        $('#productForm').trigger('reset');
+        isEdit = false;
+    });
+});
+
+// Mở modal thêm mới
+function openModal() {
+    console.log("Mở modal thêm mới");
+    isEdit = false;
+    $('#modalTitle').text('Thêm sản phẩm mới');
+    $('#maSP').prop('readonly', false);
+    $('#productForm').trigger('reset');
+    $('#productModal').modal('show');
+}
+
+// Mở modal sửa
+function editProduct(id) {
+    isEdit = true;
+    $('#modalTitle').text('Sửa sản phẩm');
+    $('#maSP').prop('readonly', true);
+
+    $.ajax({
+        url: '/SanPham/GetSanPham',
+        type: 'GET',
+        data: { maSP: id },
+        success: function (data) {
+            $('#maSP').val(data.maSP);
+            $('#tenSP').val(data.tenSP);
+            $('#soLuong').val(data.soLuong);
+            $('#gia').val(data.gia);
+            $('#productModal').modal('show');
+        }
+    });
+}
+
+// Xóa sản phẩm
+function deleteProduct(id) {
+    if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này? \nLưu ý: Tất cả chi tiết hóa đơn liên quan cũng sẽ bị xóa.')) {
+        $.ajax({
+            url: '/SanPham/XoaSanPham',
+            type: 'POST',
+            data: { maSP: id },
+            success: function (result) {
+                if (result.success) {
+                    alert('Xóa sản phẩm thành công!');
+                    location.reload();
+                }
+                else {
+                    alert(result.message);
+                }
+            }
+        });
+    }
+}
+
+// Lưu sản phẩm mới
+function saveProduct() {
+    console.log("Bắt đầu lưu sản phẩm");
+    
+    let data = {
+        maSP: $('#maSP').val(),
+        tenSP: $('#tenSP').val(),
+        soLuong: $('#soLuong').val(),
+        gia: $('#gia').val()
+    };
+
+    console.log("Dữ liệu form:", data);
+
+    // Kiểm tra dữ liệu
+    if (!data.maSP || !data.tenSP || !data.soLuong || !data.gia) {
+        alert('Vui lòng nhập đầy đủ thông tin!');
+        return;
+    }
+
+    let url = isEdit ? '/SanPham/CapNhatSanPham' : '/SanPham/ThemSanPham';
+
+    $.ajax({
+        url: url,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (result) {
+            console.log("Response:", result);
+            if (result.success) {
+                alert(isEdit ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+                $('#productModal').modal('hide');
+                location.reload();
+            }
+            else {
+                alert(result.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Lỗi:", error);
+            alert('Có lỗi xảy ra khi thêm sản phẩm!');
+        }
+    });
+}
+
+// Reset form khi đóng modal
+$('#productModal').on('hidden.bs.modal', function () {
+    $('#productForm').trigger('reset');
+    isEdit = false;
+});
+
+// Thêm event listeners khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    // Thêm event listeners cho input số lượng và giá
+    document.getElementById('soLuong').addEventListener('keypress', validateNumberInput);
+    document.getElementById('gia').addEventListener('keypress', validateNumberInput);
+    
+    // Ngăn chặn việc nhập e hoặc dấu chấm trong input number
+    document.getElementById('soLuong').addEventListener('keydown', function(e) {
+        if (e.key === 'e' || e.key === '.') {
+            e.preventDefault();
+        }
+    });
+    
+    document.getElementById('gia').addEventListener('keydown', function(e) {
+        if (e.key === 'e' || e.key === '.') {
+            e.preventDefault();
+        }
+    });
+    
+    // Thêm event listener cho input tìm kiếm
+    document.getElementById('search-text').addEventListener('input', searchProducts);
+    
+    loadProducts();
+});
+
 let allProducts = [];
 let products = [];
 let isEditing = false;
@@ -68,24 +211,6 @@ function openAddModal() {
     new bootstrap.Modal(document.getElementById('productModal')).show();
 }
 
-// Mở modal sửa sản phẩm
-function editProduct(maSP) {
-    const product = products.find(p => p.maSP === maSP);
-    if (product) {
-        document.getElementById('modalTitle').textContent = 'Sửa Sản Phẩm';
-        document.getElementById('maSP').value = product.maSP;
-        document.getElementById('maSP').setAttribute('readonly', true);
-        document.getElementById('tenSP').value = product.tenSP;
-        document.getElementById('soLuong').value = product.soLuong;
-        document.getElementById('gia').value = product.gia;
-        
-        // Đánh dấu form đang trong chế độ sửa
-        document.getElementById('productForm').setAttribute('data-mode', 'edit');
-        
-        new bootstrap.Modal(document.getElementById('productModal')).show();
-    }
-}
-
 // Thêm hàm kiểm tra input
 function validateNumberInput(event) {
     // Chỉ cho phép nhập số
@@ -110,97 +235,6 @@ async function checkMaSPExists(maSP) {
     } catch (error) {
         console.error('Error:', error);
         return false;
-    }
-}
-
-// Cập nhật hàm saveProduct
-async function saveProduct() {
-    const form = document.getElementById('productForm');
-    const isEditMode = form.getAttribute('data-mode') === 'edit';
-    
-    const maSP = document.getElementById('maSP').value.trim();
-    const tenSP = document.getElementById('tenSP').value.trim();
-    const soLuong = document.getElementById('soLuong').value.trim();
-    const gia = document.getElementById('gia').value.trim();
-
-    // Kiểm tra dữ liệu trước khi gửi
-    if (!maSP || !tenSP || !soLuong || !gia) {
-        showToast('Vui lòng điền đầy đủ thông tin', 'error');
-        return;
-    }
-
-    // Kiểm tra số lượng và giá phải là số dương
-    if (parseInt(soLuong) < 0 || parseInt(gia) < 0) {
-        showToast('Số lượng và giá phải là số dương', 'error');
-        return;
-    }
-
-    // Kiểm tra mã sản phẩm trùng lặp khi thêm mới
-    if (!isEditMode) {
-        const exists = await checkMaSPExists(maSP);
-        if (exists) {
-            showToast('Mã sản phẩm đã tồn tại!', 'error');
-            return;
-        }
-    }
-
-    const productData = {
-        maSP: maSP,
-        tenSP: tenSP,
-        soLuong: soLuong,
-        gia: gia
-    };
-
-    try {
-        const response = await fetch(isEditMode ? '/SanPham/UpdateProduct' : '/SanPham/AddProduct', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(productData)
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-            showToast(result.message);
-            await loadProducts();
-            bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-        } else {
-            showToast(result.message, 'error');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('Có lỗi xảy ra khi lưu sản phẩm', 'error');
-    }
-}
-
-// Hàm xóa sản phẩm
-async function deleteProduct(maSP) {
-    if (!confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
-        return;
-    }
-
-    try {
-        const response = await fetch('/SanPham/DeleteProduct', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(maSP)
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-            showToast(result.message);
-            await loadProducts(); // Tải lại danh sách sản phẩm
-        } else {
-            showToast(result.message, 'error');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('Có lỗi xảy ra khi xóa sản phẩm', 'error');
     }
 }
 
@@ -239,178 +273,90 @@ function formatCurrency(amount) {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }
 
-// Thêm event listeners khi trang load
-document.addEventListener('DOMContentLoaded', function() {
-    // Thêm event listeners cho input số lượng và giá
-    document.getElementById('soLuong').addEventListener('keypress', validateNumberInput);
-    document.getElementById('gia').addEventListener('keypress', validateNumberInput);
-    
-    // Ngăn chặn việc nhập e hoặc dấu chấm trong input number
-    document.getElementById('soLuong').addEventListener('keydown', function(e) {
-        if (e.key === 'e' || e.key === '.') {
-            e.preventDefault();
-        }
-    });
-    
-    document.getElementById('gia').addEventListener('keydown', function(e) {
-        if (e.key === 'e' || e.key === '.') {
-            e.preventDefault();
-        }
-    });
-    
-    // Thêm event listener cho input tìm kiếm
-    document.getElementById('search-text').addEventListener('input', searchProducts);
-    
-    loadProducts();
-});
+// Thêm event listener cho nút lưu
+document.getElementById('saveButton').addEventListener('click', saveProduct);
 
-// Hàm sửa sản phẩm
-function suaSanPham(maSP) {
-    console.log('Sửa sản phẩm:', maSP); // Debug log
-    $.ajax({
-        url: '/SanPham/GetSanPham',
-        type: 'GET',
-        data: { maSP: maSP },
-        success: function(data) {
-            if (data) {
-                $('#editMaSP').val(data.maSP);
-                $('#editTenSP').val(data.tenSP);
-                $('#editSoLuong').val(data.soLuong);
-                $('#editGia').val(data.gia);
-                $('#editModal').modal('show');
-            } else {
-                alert('Không tìm thấy thông tin sản phẩm!');
-            }
-        },
-        error: function(xhr, status, error) {
+function editProduct(maSP) {
+    isEdit = true;
+    document.getElementById('modalTitle').textContent = 'Sửa sản phẩm';
+    document.getElementById('maSP').readOnly = true;
+
+    // Lấy thông tin sản phẩm
+    fetch(`/SanPham/GetSanPham?maSP=${maSP}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('maSP').value = data.maSP;
+            document.getElementById('tenSP').value = data.tenSP;
+            document.getElementById('soLuong').value = data.soLuong;
+            document.getElementById('gia').value = data.gia;
+            $('#productModal').modal('show');
+        })
+        .catch(error => {
             console.error('Error:', error);
-            alert('Có lỗi xảy ra khi lấy thông tin sản phẩm!');
-        }
-    });
+            alert('Không thể lấy thông tin sản phẩm!');
+        });
 }
 
-// Hàm xóa sản phẩm
-function xoaSanPham(maSP) {
+function deleteProduct(maSP) {
     if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
-        $.ajax({
-            url: '/SanPham/XoaSanPham',
-            type: 'POST',
-            data: { maSP: maSP },
-            success: function(response) {
-                if (response.success) {
-                    alert('Xóa sản phẩm thành công!');
-                    location.reload();
-                } else {
-                    alert('Xóa sản phẩm thất bại: ' + (response.message || 'Lỗi không xác định'));
-                }
+        fetch('/SanPham/XoaSanPham', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
-            error: function(xhr, status, error) {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi xóa sản phẩm!');
+            body: JSON.stringify({ maSP: maSP })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Xóa sản phẩm thành công!');
+                location.reload();
+            } else {
+                alert(data.message || 'Xóa sản phẩm thất bại!');
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi xóa sản phẩm!');
         });
     }
 }
 
-// Đảm bảo document đã sẵn sàng
-$(document).ready(function() {
-    console.log('Document ready'); // Debug log
-
-    // Xử lý sự kiện click nút Lưu trong modal thêm mới
-    $(document).on('click', '#btnLuuMoi', function() {
-        console.log('Nút Lưu được click'); // Debug log
-        luuSanPhamMoi();
-    });
-
-    // Xử lý sự kiện click nút Sửa
-    $(document).on('click', '.btn-sua', function() {
-        var maSP = $(this).data('masp');
-        suaSanPham(maSP);
-    });
-
-    // Xử lý sự kiện click nút Xóa
-    $(document).on('click', '.btn-xoa', function() {
-        var maSP = $(this).data('masp');
-        xoaSanPham(maSP);
-    });
-});
-
-// Hàm lưu sản phẩm mới
-function luuSanPhamMoi() {
-    // Lấy dữ liệu từ form
-    var maSP = $('#addMaSP').val().trim();
-    var tenSP = $('#addTenSP').val().trim();
-    var soLuong = $('#addSoLuong').val().trim();
-    var gia = $('#addGia').val().trim();
-
-    console.log('Dữ liệu form:', { maSP, tenSP, soLuong, gia }); // Debug log
-
-    // Validate dữ liệu
-    if (!maSP || !tenSP || !soLuong || !gia) {
-        alert('Vui lòng nhập đầy đủ thông tin!');
+function saveProduct() {
+    const form = document.getElementById('productForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
         return;
     }
 
-    // Gửi request AJAX
-    $.ajax({
-        url: '/SanPham/ThemSanPham',
-        type: 'POST',
-        data: {
-            maSP: maSP,
-            tenSP: tenSP,
-            soLuong: soLuong,
-            gia: gia
+    const data = {
+        maSP: document.getElementById('maSP').value,
+        tenSP: document.getElementById('tenSP').value,
+        soLuong: parseInt(document.getElementById('soLuong').value),
+        gia: parseFloat(document.getElementById('gia').value)
+    };
+
+    const url = isEdit ? '/SanPham/CapNhatSanPham' : '/SanPham/ThemSanPham';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
         },
-        success: function(response) {
-            console.log('Response:', response); // Debug log
-            if (response.success) {
-                alert('Thêm sản phẩm thành công!');
-                $('#addModal').modal('hide');
-                location.reload();
-            } else {
-                alert('Thêm sản phẩm thất bại: ' + (response.message || 'Lỗi không xác định'));
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error:', error);
-            alert('Có lỗi xảy ra khi thêm sản phẩm!');
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(isEdit ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+            $('#productModal').modal('hide');
+            location.reload();
+        } else {
+            alert(data.message || 'Thao tác thất bại!');
         }
-    });
-}
-
-// Hàm lưu cập nhật
-function luuCapNhat() {
-    var maSP = $('#editMaSP').val();
-    var tenSP = $('#editTenSP').val().trim();
-    var soLuong = $('#editSoLuong').val().trim();
-    var gia = $('#editGia').val().trim();
-
-    if (!tenSP || !soLuong || !gia) {
-        alert('Vui lòng nhập đầy đủ thông tin!');
-        return;
-    }
-
-    $.ajax({
-        url: '/SanPham/CapNhatSanPham',
-        type: 'POST',
-        data: {
-            maSP: maSP,
-            tenSP: tenSP,
-            soLuong: soLuong,
-            gia: gia
-        },
-        success: function(response) {
-            if (response.success) {
-                alert('Cập nhật sản phẩm thành công!');
-                $('#editModal').modal('hide');
-                location.reload();
-            } else {
-                alert('Cập nhật sản phẩm thất bại: ' + (response.message || 'Lỗi không xác định'));
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error:', error);
-            alert('Có lỗi xảy ra khi cập nhật sản phẩm!');
-        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra!');
     });
 } 

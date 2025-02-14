@@ -1,3 +1,4 @@
+@model List<QLSieuThiWeb.Models.sanPham>
 @{
     ViewData["Title"] = "Quản Lý Kho";
 }
@@ -8,32 +9,23 @@
 
 <partial name="_NavbarPartial" />
 
-@model List<QLSieuThiWeb.Models.sanPham>
-
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Quản Lý Kho</h2>
-        <div class="d-flex align-items-center">
-            <div id="search-box" class="me-3">
-                <input type="text" id="search-text" required placeholder="Tìm kiếm sản phẩm...">
-                <button type="button" onclick="searchProducts()">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-        </div>
     </div>
 
+    <!-- Danh sách sản phẩm trong kho -->
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
                         <tr>
-                            <th>MÃ SP</th>
-                            <th>TÊN SẢN PHẨM</th>
-                            <th>SỐ LƯỢNG</th>
-                            <th>GIÁ</th>
-                            <th>THAO TÁC</th>
+                            <th>Mã SP</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Số lượng tồn</th>
+                            <th>Giá</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,11 +35,36 @@
                                 <td>@item.maSP</td>
                                 <td>@item.tenSP</td>
                                 <td>@item.soLuong</td>
-                                <td>@item.gia</td>
+                                <td>@item.gia.ToString("#,##0 VNĐ")</td>
                                 <td>
-                                    <button class="btn btn-primary btn-sm" onclick="capNhatSoLuong('@item.maSP')">
-                                        Cập nhật
-                                    </button>
+                                    <div class="input-group" style="display: none;" id="nhapKho_@item.maSP">
+                                        <input type="number" class="form-control form-control-sm" 
+                                               id="soLuongNhap_@item.maSP" min="1" placeholder="Số lượng">
+                                        <button class="btn btn-success btn-sm" onclick="nhapKho('@item.maSP')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-secondary btn-sm" onclick="huyNhapKho('@item.maSP')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="input-group" style="display: none;" id="xuatKho_@item.maSP">
+                                        <input type="number" class="form-control form-control-sm" 
+                                               id="soLuongXuat_@item.maSP" min="1" placeholder="Số lượng">
+                                        <button class="btn btn-primary btn-sm" onclick="xuatKho('@item.maSP')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-secondary btn-sm" onclick="huyXuatKho('@item.maSP')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="btn-group" id="buttons_@item.maSP">
+                                        <button class="btn btn-outline-success btn-sm" onclick="showNhapKho('@item.maSP')">
+                                            <i class="fas fa-plus"></i> Nhập
+                                        </button>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="showXuatKho('@item.maSP')">
+                                            <i class="fas fa-minus"></i> Xuất
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -103,5 +120,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/kho.js"></script>
+    <script src="~/js/kho.js" asp-append-version="true"></script>
 } 

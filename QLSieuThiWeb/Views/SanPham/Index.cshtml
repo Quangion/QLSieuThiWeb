@@ -10,104 +10,85 @@
 <partial name="_NavbarPartial" />
 
 <div class="container-fluid mt-4">
-    <h2>Quản Lý Sản Phẩm</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Quản Lý Sản Phẩm</h2>
+        <button type="button" class="btn btn-primary" onclick="openModal()">
+            <i class="fas fa-plus"></i> Thêm sản phẩm
+        </button>
+    </div>
+
     <div class="card">
         <div class="card-body">
-            <div class="mb-3">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">Thêm sản phẩm mới</button>
-            </div>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>MÃ SP</th>
-                        <th>TÊN SẢN PHẨM</th>
-                        <th>SỐ LƯỢNG</th>
-                        <th>GIÁ</th>
-                        <th>THAO TÁC</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
                         <tr>
-                            <td>@item.maSP</td>
-                            <td>@item.tenSP</td>
-                            <td>@item.soLuong</td>
-                            <td>@item.gia</td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" onclick="suaSanPham('@item.maSP')">Sửa</button>
-                                <button class="btn btn-danger btn-sm" onclick="xoaSanPham('@item.maSP')">Xóa</button>
-                            </td>
+                            <th>Mã SP</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Giá</th>
+                            <th style="width: 100px">Thao tác</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var sp in Model)
+                        {
+                            <tr>
+                                <td>@sp.maSP</td>
+                                <td>@sp.tenSP</td>
+                                <td>@sp.soLuong</td>
+                                <td>@String.Format("{0:N0}đ", sp.gia)</td>
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm" onclick="editProduct('@sp.maSP')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteProduct('@sp.maSP')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Thêm Sản Phẩm -->
-<div class="modal fade" id="addModal" tabindex="-1">
+<!-- Modal -->
+<div class="modal fade" id="productModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Thêm Sản Phẩm Mới</h5>
+                <h5 class="modal-title" id="modalTitle">Thêm sản phẩm mới</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="formThemSP">
+                <form id="productForm">
                     <div class="mb-3">
-                        <label class="form-label">Mã SP</label>
-                        <input type="text" class="form-control" id="addMaSP" required>
+                        <label class="form-label">Mã sản phẩm</label>
+                        <input type="text" class="form-control" id="maSP" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Tên SP</label>
-                        <input type="text" class="form-control" id="addTenSP" required>
+                        <label class="form-label">Tên sản phẩm</label>
+                        <input type="text" class="form-control" id="tenSP" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Số Lượng</label>
-                        <input type="number" class="form-control" id="addSoLuong" required>
+                        <label class="form-label">Số lượng</label>
+                        <input type="number" class="form-control" id="soLuong" required min="0">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Giá</label>
-                        <input type="number" class="form-control" id="addGia" required>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="gia" required min="0">
+                            <span class="input-group-text">đ</span>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" id="btnLuuMoi">Lưu</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Sửa Sản Phẩm -->
-<div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Sửa Sản Phẩm</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="editMaSP">
-                <div class="mb-3">
-                    <label class="form-label">Tên SP</label>
-                    <input type="text" class="form-control" id="editTenSP">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Số Lượng</label>
-                    <input type="number" class="form-control" id="editSoLuong">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Giá</label>
-                    <input type="number" class="form-control" id="editGia">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary" onclick="luuCapNhat()">Lưu thay đổi</button>
+                <button type="button" class="btn btn-primary" onclick="saveProduct()">Lưu</button>
             </div>
         </div>
     </div>

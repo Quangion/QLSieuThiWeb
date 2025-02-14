@@ -1,0 +1,88 @@
+@model QLSieuThiWeb.Models.HoaDonViewModel
+@{
+    ViewData["Title"] = "Tạo hóa đơn";
+    var danhSachSP = ViewBag.DanhSachSP as List<SanPhamViewModel>;
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="text-center mb-4">Tạo Hóa Đơn Mới</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <form id="formTaoHoaDon">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" id="sdt" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h5>Chi tiết đơn hàng</h5>
+                    <table class="table table-bordered" id="tableSanPham">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th>Thành tiền</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-info" onclick="themSanPham()">
+                        <i class="fas fa-plus"></i> Thêm sản phẩm
+                    </button>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 text-end">
+                        <h5>Tổng tiền: <span id="tongTien">0 VNĐ</span></h5>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu hóa đơn
+                        </button>
+                        <a href="/QuanLyHoaDon" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Hủy
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<template id="templateSanPham">
+    <tr>
+        <td>
+            <select class="form-select sanpham-select" required onchange="capNhatGia(this)">
+                <option value="">Chọn sản phẩm</option>
+                @foreach (var sp in danhSachSP)
+                {
+                    <option value="@sp.MaSP" data-gia="@sp.Gia" data-tonkho="@sp.SoLuong">
+                        @sp.TenSP
+                    </option>
+                }
+            </select>
+        </td>
+        <td>
+            <input type="number" class="form-control soluong-input" min="1" required onchange="tinhThanhTien(this)">
+        </td>
+        <td>
+            <input type="text" class="form-control dongia-input" readonly>
+        </td>
+        <td>
+            <input type="text" class="form-control thanhtien-input" readonly>
+        </td>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm" onclick="xoaSanPham(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+@section Scripts {
+    <script src="~/js/hoadon.js"></script>
+} 

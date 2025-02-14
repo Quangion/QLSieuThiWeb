@@ -4,7 +4,7 @@
     {
         public string maSP { get; set; }
         public string tenSP { get; set; }
-        public string gia { get; set; }
-        public string soLuong { get; set; }
+        public decimal gia { get; set; }
+        public int soLuong { get; set; }
     }
 }

@@ -1,0 +1,82 @@
+@model IEnumerable<QLSieuThiWeb.Models.HoaDonViewModel>
+@{
+    ViewData["Title"] = "Quản lý hóa đơn";
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="text-center mb-4">Quản Lý Hóa Đơn</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã HĐ</th>
+                            <th>Thời gian</th>
+                            <th>SĐT</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.MaHD</td>
+                                <td>@item.ThoiGian.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@item.SDT</td>
+                                <td>@item.TongTien.ToString("#,##0")</td>
+                                <td>
+                                    <span class="badge @(item.TrangThai == "Đã giao" ? "bg-success" : "bg-warning")">
+                                        @item.TrangThai
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="xemChiTiet('@item.MaHD')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    @if (item.TrangThai != "Đã giao")
+                                    {
+                                        <button class="btn btn-outline-success btn-sm" onclick="capNhatTrangThai('@item.MaHD')">
+                                            <i class="fas fa-truck"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chi tiết -->
+<div class="modal fade" id="modalChiTiet" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết hóa đơn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Mã SP</th>
+                            <th>Số lượng mua</th>
+                            <th>Tổng tiền SP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chiTietHoaDon"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/hoadon.js"></script>
+} 

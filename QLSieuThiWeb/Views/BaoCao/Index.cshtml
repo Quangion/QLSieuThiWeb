@@ -1,0 +1,117 @@
+@{
+    ViewData["Title"] = "Báo Cáo Thống Kê";
+}
+
+<div class="container-fluid mt-4">
+    <h2>Báo Cáo Thống Kê</h2>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#hangBanChay">Hàng Bán Chạy</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#thongKeNgay">Thống Kê Theo Ngày</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#thongKeThang">Thống Kê Theo Tháng</a>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content mt-3">
+        <!-- Hàng Bán Chạy -->
+        <div id="hangBanChay" class="tab-pane active">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label>Từ ngày:</label>
+                            <input type="date" class="form-control" id="tuNgay">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Đến ngày:</label>
+                            <input type="date" class="form-control" id="denNgay">
+                        </div>
+                        <div class="col-md-2">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-primary form-control" onclick="xemHangBanChay()">Xem</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Mã SP</th>
+                                    <th>Tên Sản Phẩm</th>
+                                    <th>Số Lượng Bán</th>
+                                    <th>Tổng Tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hangBanChayData">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thống Kê Theo Ngày -->
+        <div id="thongKeNgay" class="tab-pane fade">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label>Chọn ngày:</label>
+                            <input type="date" class="form-control" id="ngayThongKe">
+                        </div>
+                        <div class="col-md-2">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-primary form-control" onclick="xemThongKeNgay()">Xem</button>
+                        </div>
+                    </div>
+                    <div id="thongKeNgayData">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thống Kê Theo Tháng -->
+        <div id="thongKeThang" class="tab-pane fade">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-2">
+                            <label>Tháng:</label>
+                            <select class="form-select" id="thang">
+                                @for (int i = 1; i <= 12; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Năm:</label>
+                            <select class="form-select" id="nam">
+                                @for (int i = DateTime.Now.Year; i >= 2020; i--)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-primary form-control" onclick="xemThongKeThang()">Xem</button>
+                        </div>
+                    </div>
+                    <div id="thongKeThangData">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/baocao.js"></script>
+} 

@@ -222,4 +222,167 @@ $(document).ready(function() {
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('search-text').addEventListener('input', searchProducts);
     loadProducts();
+});
+
+function showNhapKho(maSP) {
+    // Lấy dòng hiện tại
+    const currentRow = $(`#buttons_${maSP}`).closest('tr');
+    const tenSP = currentRow.find('td:eq(1)').text(); // Lấy tên sản phẩm từ cột thứ 2
+    const tonKho = currentRow.find('td:eq(2)').text(); // Lấy tồn kho từ cột thứ 3
+
+    currentRow.find(`#buttons_${maSP}`).hide();
+    currentRow.find(`#nhapKho_${maSP}`).show();
+    currentRow.find(`#soLuongNhap_${maSP}`).focus();
+}
+
+function showXuatKho(maSP) {
+    const currentRow = $(`#buttons_${maSP}`).closest('tr');
+    const tenSP = currentRow.find('td:eq(1)').text();
+    const tonKho = currentRow.find('td:eq(2)').text();
+
+    currentRow.find(`#buttons_${maSP}`).hide();
+    currentRow.find(`#xuatKho_${maSP}`).show();
+    currentRow.find(`#soLuongXuat_${maSP}`).focus();
+}
+
+function huyNhapKho(maSP) {
+    const currentRow = $(`#nhapKho_${maSP}`).closest('tr');
+    currentRow.find(`#nhapKho_${maSP}`).hide();
+    currentRow.find(`#soLuongNhap_${maSP}`).val('');
+    currentRow.find(`#buttons_${maSP}`).show();
+}
+
+function huyXuatKho(maSP) {
+    const currentRow = $(`#xuatKho_${maSP}`).closest('tr');
+    currentRow.find(`#xuatKho_${maSP}`).hide();
+    currentRow.find(`#soLuongXuat_${maSP}`).val('');
+    currentRow.find(`#buttons_${maSP}`).show();
+}
+
+function nhapKho(maSP) {
+    const currentRow = $(`#nhapKho_${maSP}`).closest('tr');
+    const soLuongNhap = parseInt(currentRow.find(`#soLuongNhap_${maSP}`).val());
+
+    if (!soLuongNhap || soLuongNhap <= 0) {
+        alert('Vui lòng nhập số lượng hợp lệ!');
+        return;
+    }
+
+    $.ajax({
+        url: '/Kho/NhapKho',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            maSP: maSP,
+            soLuongNhap: soLuongNhap
+        }),
+        success: function(response) {
+            if (response.success) {
+                alert('Nhập kho thành công!');
+                huyNhapKho(maSP);
+                loadDanhSachSanPham();
+            } else {
+                alert(response.message);
+            }
+        },
+        error: function() {
+            alert('Có lỗi xảy ra!');
+        }
+    });
+}
+
+function xuatKho(maSP) {
+    const currentRow = $(`#xuatKho_${maSP}`).closest('tr');
+    const soLuongXuat = parseInt(currentRow.find(`#soLuongXuat_${maSP}`).val());
+    const tonKho = parseInt(currentRow.find('td:eq(2)').text());
+
+    if (!soLuongXuat || soLuongXuat <= 0) {
+        alert('Vui lòng nhập số lượng hợp lệ!');
+        return;
+    }
+
+    if (soLuongXuat > tonKho) {
+        alert('Số lượng xuất không được vượt quá số lượng tồn kho!');
+        return;
+    }
+
+    $.ajax({
+        url: '/Kho/XuatKho',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            maSP: maSP,
+            soLuongXuat: soLuongXuat
+        }),
+        success: function(response) {
+            if (response.success) {
+                alert('Xuất kho thành công!');
+                huyXuatKho(maSP);
+                loadDanhSachSanPham();
+            } else {
+                alert(response.message);
+            }
+        },
+        error: function() {
+            alert('Có lỗi xảy ra!');
+        }
+    });
+}
+
+function loadDanhSachSanPham() {
+    $.get('/Kho/GetDanhSachSanPham', function(response) {
+        if (response.success) {
+            let html = '';
+            response.data.forEach(function(sp) {
+                html += `
+                    <tr>
+                        <td>${sp.maSP}</td>
+                        <td>${sp.tenSP}</td>
+                        <td>${sp.soLuong}</td>
+                        <td>${formatMoney(sp.gia)}</td>
+                        <td>
+                            <div class="input-group" style="display: none;" id="nhapKho_${sp.maSP}">
+                                <input type="number" class="form-control form-control-sm" 
+                                       id="soLuongNhap_${sp.maSP}" min="1" placeholder="Số lượng">
+                                <button class="btn btn-success btn-sm" onclick="nhapKho('${sp.maSP}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="huyNhapKho('${sp.maSP}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="input-group" style="display: none;" id="xuatKho_${sp.maSP}">
+                                <input type="number" class="form-control form-control-sm" 
+                                       id="soLuongXuat_${sp.maSP}" min="1" placeholder="Số lượng">
+                                <button class="btn btn-primary btn-sm" onclick="xuatKho('${sp.maSP}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="huyXuatKho('${sp.maSP}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="btn-group" id="buttons_${sp.maSP}">
+                                <button type="button" class="btn btn-outline-success btn-sm" 
+                                        onclick="showNhapKho('${sp.maSP}')">
+                                    <i class="fas fa-plus"></i> Nhập
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" 
+                                        onclick="showXuatKho('${sp.maSP}')">
+                                    <i class="fas fa-minus"></i> Xuất
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+            $('tbody').html(html);
+        }
+    });
+}
+
+function formatMoney(amount) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
+
+$(document).ready(function() {
+    loadDanhSachSanPham();
 }); 

@@ -16,24 +16,25 @@ namespace QLSieuThiWeb.Controllers
 
         public IActionResult Index()
         {
-            var products = new List<sanPham>();
+            List<sanPham> model = new List<sanPham>();
             try
             {
-                using (var conn = new SqlConnection(_connectionString))
+                using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT * FROM sanPham", conn))
+                    string query = "SELECT * FROM sanPham ORDER BY maSP";
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
-                        using (var reader = cmd.ExecuteReader())
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                products.Add(new sanPham
+                                model.Add(new sanPham
                                 {
                                     maSP = reader["maSP"].ToString(),
                                     tenSP = reader["tenSP"].ToString(),
-                                    soLuong = reader["soLuong"].ToString(),
-                                    gia = reader["gia"].ToString()
+                                    soLuong = Convert.ToInt32(reader["soLuong"]),
+                                    gia = Convert.ToDecimal(reader["gia"])
                                 });
                             }
                         }
@@ -42,42 +43,43 @@ namespace QLSieuThiWeb.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                TempData["ErrorMessage"] = "Lỗi khi tải dữ liệu: " + ex.Message;
             }
-
-            return View(products);
+            return View(model);
         }
 
-        public JsonResult GetAllProducts()
+        [HttpGet]
+        public IActionResult GetDanhSachSanPham()
         {
-            List<sanPham> sanPhams = new List<sanPham>();
             try
             {
+                List<sanPham> danhSachSP = new List<sanPham>();
                 using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM sanPham", conn))
+                    string query = "SELECT * FROM sanPham ORDER BY maSP";
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                var sp = new sanPham();
-                                sp.maSP = reader["maSP"]?.ToString();
-                                sp.tenSP = reader["tenSP"]?.ToString();
-                                sp.soLuong = reader["soLuong"]?.ToString() ?? "0";
-                                sp.gia = reader["gia"]?.ToString() ?? "0";
-                                sanPhams.Add(sp);
+                                danhSachSP.Add(new sanPham
+                                {
+                                    maSP = reader["maSP"].ToString(),
+                                    tenSP = reader["tenSP"].ToString(),
+                                    soLuong = Convert.ToInt32(reader["soLuong"]),
+                                    gia = Convert.ToDecimal(reader["gia"])
+                                });
                             }
                         }
                     }
                 }
-                return Json(sanPhams);
+                return Json(new { success = true, data = danhSachSP });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                return Json(new { error = "Lỗi khi tải dữ liệu" });
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -143,11 +145,120 @@ namespace QLSieuThiWeb.Controllers
                 return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
         }
+
+        [HttpPost]
+        public IActionResult NhapKho([FromBody] NhapKhoModel model)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    using (SqlTransaction transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            string updateQuery = "UPDATE sanPham SET soLuong = soLuong + @soLuongNhap WHERE maSP = @maSP";
+                            using (SqlCommand cmd = new SqlCommand(updateQuery, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@maSP", model.MaSP);
+                                cmd.Parameters.AddWithValue("@soLuongNhap", model.SoLuongNhap);
+                                int rowsAffected = cmd.ExecuteNonQuery();
+
+                                if (rowsAffected == 0)
+                                {
+                                    throw new Exception("Không tìm thấy sản phẩm!");
+                                }
+                            }
+                            transaction.Commit();
+                            return Json(new { success = true, message = "Nhập kho thành công!" });
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            throw ex;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi nhập kho: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult XuatKho([FromBody] XuatKhoModel model)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    using (SqlTransaction transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // Kiểm tra số lượng tồn kho
+                            string checkQuery = "SELECT soLuong FROM sanPham WHERE maSP = @maSP";
+                            int tonKho;
+                            using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
+                            {
+                                checkCmd.Parameters.AddWithValue("@maSP", model.MaSP);
+                                tonKho = Convert.ToInt32(checkCmd.ExecuteScalar());
+                            }
+
+                            if (tonKho < model.SoLuongXuat)
+                            {
+                                throw new Exception("Số lượng xuất vượt quá số lượng tồn kho!");
+                            }
+
+                            // Cập nhật số lượng
+                            string updateQuery = "UPDATE sanPham SET soLuong = soLuong - @soLuongXuat WHERE maSP = @maSP";
+                            using (SqlCommand cmd = new SqlCommand(updateQuery, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@maSP", model.MaSP);
+                                cmd.Parameters.AddWithValue("@soLuongXuat", model.SoLuongXuat);
+                                int rowsAffected = cmd.ExecuteNonQuery();
+
+                                if (rowsAffected == 0)
+                                {
+                                    throw new Exception("Không tìm thấy sản phẩm!");
+                                }
+                            }
+                            transaction.Commit();
+                            return Json(new { success = true, message = "Xuất kho thành công!" });
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            throw ex;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi xuất kho: " + ex.Message });
+            }
+        }
     }
 
     public class StockUpdate
     {
         public string maSP { get; set; }
         public string soLuong { get; set; }
+    }
+
+    public class NhapKhoModel
+    {
+        public string MaSP { get; set; }
+        public int SoLuongNhap { get; set; }
+    }
+
+    public class XuatKhoModel
+    {
+        public string MaSP { get; set; }
+        public int SoLuongXuat { get; set; }
     }
 } 
