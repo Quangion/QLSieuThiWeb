@@ -12,14 +12,14 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Số điện thoại khách hàng</label>
-                        <input type="text" class="form-control" id="sdt">
+                        <input type="text" class="form-control" id="sdt" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Trạng thái</label>
                         <select class="form-select" id="trangThai">
                             <option value="Đã giao">Lấy luôn</option>
                             <option value="Chưa giao">Chưa lấy hàng</option>
-                            
+
                         </select>
                     </div>
                 </div>
@@ -48,7 +48,7 @@
                     <div class="col-12 text-end">
                         <h5>Tổng tiền: <span id="tongTien">0 VNĐ</span></h5>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Lưu hóa đơn
+                            <i class="fas fa-save"></i> Thanh Toán
                         </button>
                         <a href="/" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Hủy
@@ -113,9 +113,17 @@
 
         function tinhThanhTien(input) {
             const row = input.closest('tr');
-            const soLuong = input.value;
-            const gia = row.querySelector('.sanpham-select').options[row.querySelector('.sanpham-select').selectedIndex].dataset.gia;
-            row.querySelector('.thanhtien-input').value = formatMoney(soLuong * gia);
+            const soLuong = parseInt(input.value);
+            const select = row.querySelector('.sanpham-select');
+            const tonKho = parseInt(select.options[select.selectedIndex].dataset.tonkho);
+            const gia = parseFloat(select.options[select.selectedIndex].dataset.gia);
+
+            if (soLuong > tonKho) {
+                alert('Số lượng nhập vượt quá tồn kho!');
+                input.value = tonKho;
+            }
+
+            row.querySelector('.thanhtien-input').value = formatMoney(input.value * gia);
             tinhTongTien();
         }
 
@@ -166,7 +174,7 @@
                 success: function(response) {
                     alert(response.message);
                     if (response.success) {
-                        window.location.href = '/';
+                        location.reload(); // Reload lại trang sau khi lưu thành công
                     }
                 },
                 error: function() {
