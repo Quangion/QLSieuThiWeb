@@ -2,7 +2,7 @@ namespace QLSieuThiWeb.Models
 {
     public class HoaDonViewModel
     {
-        public string MaHD { get; set; }
+        public string MaHD { get; set; }  
         public DateTime ThoiGian { get; set; }
         public string SDT { get; set; }
         public string TrangThai { get; set; }

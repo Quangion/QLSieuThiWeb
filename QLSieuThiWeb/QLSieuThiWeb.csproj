@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Views\HoaDon\" />
     <Folder Include="Views\QuanLyHoaDon\" />
   </ItemGroup>
 
