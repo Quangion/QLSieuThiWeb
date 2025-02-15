@@ -1,155 +1,85 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
 
-namespace QLSieuThiWeb.Controllers
+public class BaoCaoController : Controller
 {
-    public class BaoCaoController : Controller
+    private readonly string _connectionString = "Server=QUANGION;Database=TT3;Trusted_Connection=True;MultipleActiveResultSets=true;Encrypt=False";
+
+    public async Task<IActionResult> Index()
     {
-        private readonly string _connectionString;
+        var sanPhamBanChay = await GetSanPhamBanChay();
+        var doanhSoHomNay = await GetDoanhSo("ngay", DateTime.Now);
+        var doanhSoThangNay = await GetDoanhSo("thang", DateTime.Now);
+        var doanhSoNamNay = await GetDoanhSo("nam", DateTime.Now);
 
-        public BaoCaoController(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
-        }
+        ViewBag.SanPhamBanChay = sanPhamBanChay;
+        ViewBag.DoanhSoHomNay = doanhSoHomNay;
+        ViewBag.DoanhSoThangNay = doanhSoThangNay;
+        ViewBag.DoanhSoNamNay = doanhSoNamNay;
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        return View();
+    }
 
-        [HttpGet]
-        public IActionResult GetHangBanChay(DateTime? tuNgay, DateTime? denNgay)
+    private async Task<List<dynamic>> GetSanPhamBanChay()
+    {
+        List<dynamic> sanPhamBanChay = new List<dynamic>();
+
+        string query = @"SELECT cthd.MaSP, sp.tenSP, SUM(CAST(cthd.SLMua AS int)) AS SoLuongBan
+                         FROM chiTietHoaDon cthd
+                         JOIN sanPham sp ON cthd.MaSP = sp.MaSP
+                         GROUP BY cthd.MaSP, sp.tenSP
+                         ORDER BY SoLuongBan DESC;";
+
+        using (SqlConnection conn = new SqlConnection(_connectionString))
         {
-            try
+            await conn.OpenAsync();
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
             {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
+                while (await reader.ReadAsync())
                 {
-                    conn.Open();
-                    string query = @"
-                        SELECT 
-                            sp.maSP,
-                                    sp.tenSP, 
-                            SUM(ct.SLMua) as tongSoLuong,
-                            SUM(ct.tongTienSP) as tongTien
-                        FROM sanPham sp
-                        JOIN chiTietHoaDon ct ON sp.maSP = ct.maSP
-                        JOIN hoaDon hd ON ct.maHD = hd.maHD
-                        WHERE (@tuNgay IS NULL OR hd.thoiGian >= @tuNgay)
-                        AND (@denNgay IS NULL OR hd.thoiGian <= @denNgay)
-                        GROUP BY sp.maSP, sp.tenSP
-                        ORDER BY tongSoLuong DESC";
-
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    sanPhamBanChay.Add(new
                     {
-                        var result = new List<dynamic>();
-                        int stt = 1;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                result.Add(new
-                                {
-                                    stt = stt++,
-                                    maSP = reader["MaSP"].ToString(),
-                                    tenSP = reader["tenSP"].ToString(),
-                                    soLuongBan = Convert.ToInt32(reader["SoLuongBan"])
-                                });
-                            }
-                        }
-                        return Json(new { success = true, data = result });
-                    }
+                        MaSP = reader["MaSP"],
+                        TenSP = reader["tenSP"].ToString(),
+                        SoLuongBan = reader["SoLuongBan"]
+                    });
                 }
             }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
+        }
+        return sanPhamBanChay;
+    }
+
+    private async Task<int> GetDoanhSo(string type, DateTime date)
+    {
+        string query = "";
+
+        if (type == "ngay")
+        {
+            query = "SELECT SUM(CAST(TongTien AS int)) FROM hoaDon WHERE CAST(thoiGian AS DATE) = @date";
+        }
+        else if (type == "thang")
+        {
+            query = "SELECT SUM(CAST(TongTien AS int)) FROM hoaDon WHERE MONTH(thoiGian) = MONTH(@date) AND YEAR(thoiGian) = YEAR(@date)";
+        }
+        else if (type == "nam")
+        {
+            query = "SELECT SUM(CAST(TongTien AS int)) FROM hoaDon WHERE YEAR(thoiGian) = YEAR(@date)";
         }
 
-        [HttpGet]
-        public IActionResult GetDoanhThuThang(int thang, int nam)
+        using (SqlConnection conn = new SqlConnection(_connectionString))
         {
-            try
+            await conn.OpenAsync();
+            using (SqlCommand cmd = new SqlCommand(query, conn))
             {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-                    string query = @"SELECT SUM(CAST(tongTien as int)) as DoanhThu 
-                                   FROM hoaDon 
-                                   WHERE MONTH(thoiGian) = @thang 
-                                   AND YEAR(thoiGian) = @nam";
-
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@thang", thang);
-                        cmd.Parameters.AddWithValue("@nam", nam);
-
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                var doanhThu = reader["DoanhThu"] == DBNull.Value ? 0 : Convert.ToInt32(reader["DoanhThu"]);
-                                return Json(new { 
-                                    success = true, 
-                                    data = new { 
-                                        doanhThu = doanhThu,
-                                        thang = thang,
-                                        nam = nam
-                                    }
-                                });
-                            }
-                        }
-                    }
-                    return Json(new { success = false, message = "Không có dữ liệu" });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpGet]
-        public IActionResult GetDoanhThuNam(int nam)
-        {
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-                    string query = @"SELECT SUM(CAST(tongTien as int)) as DoanhThu 
-                                   FROM hoaDon 
-                                   WHERE YEAR(thoiGian) = @nam";
-
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@nam", nam);
-
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                var doanhThu = reader["DoanhThu"] == DBNull.Value ? 0 : Convert.ToInt32(reader["DoanhThu"]);
-                                return Json(new { 
-                                    success = true, 
-                                    data = new { 
-                                        doanhThu = doanhThu,
-                                        nam = nam
-                                    }
-                                });
-                            }
-                        }
-                    }
-                    return Json(new { success = false, message = "Không có dữ liệu" });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
+                cmd.Parameters.AddWithValue("@date", date);
+                var result = await cmd.ExecuteScalarAsync();
+                return result != DBNull.Value ? Convert.ToInt32(result) : 0;
             }
         }
     }
-} 
+}

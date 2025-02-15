@@ -1,117 +1,71 @@
 @{
-    ViewData["Title"] = "Báo Cáo Thống Kê";
+    ViewData["Title"] = "Báo Cáo Doanh Số";
+    var sanPhamBanChay = ViewBag.SanPhamBanChay as List<dynamic>;
 }
 
-<div class="container-fluid mt-4">
-    <h2>Báo Cáo Thống Kê</h2>
+<div class="container mt-4">
+    <h2 class="text-center">📊 Báo Cáo Doanh Số</h2>
 
-    <!-- Tab Navigation -->
-    <ul class="nav nav-tabs" role="tablist">
-        <li class="nav-item">
-            <a class="nav-link active" data-bs-toggle="tab" href="#hangBanChay">Hàng Bán Chạy</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="tab" href="#thongKeNgay">Thống Kê Theo Ngày</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="tab" href="#thongKeThang">Thống Kê Theo Tháng</a>
-        </li>
-    </ul>
-
-    <!-- Tab Content -->
-    <div class="tab-content mt-3">
-        <!-- Hàng Bán Chạy -->
-        <div id="hangBanChay" class="tab-pane active">
-            <div class="card">
+    <div class="row">
+        <!-- Tổng doanh số -->
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">💰 Doanh Số Hôm Nay</div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label>Từ ngày:</label>
-                            <input type="date" class="form-control" id="tuNgay">
-                        </div>
-                        <div class="col-md-3">
-                            <label>Đến ngày:</label>
-                            <input type="date" class="form-control" id="denNgay">
-                        </div>
-                        <div class="col-md-2">
-                            <label>&nbsp;</label>
-                            <button class="btn btn-primary form-control" onclick="xemHangBanChay()">Xem</button>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Mã SP</th>
-                                    <th>Tên Sản Phẩm</th>
-                                    <th>Số Lượng Bán</th>
-                                    <th>Tổng Tiền</th>
-                                </tr>
-                            </thead>
-                            <tbody id="hangBanChayData">
-                            </tbody>
-                        </table>
-                    </div>
+                    <h3>@ViewBag.DoanhSoHomNay VND</h3>
                 </div>
             </div>
         </div>
 
-        <!-- Thống Kê Theo Ngày -->
-        <div id="thongKeNgay" class="tab-pane fade">
-            <div class="card">
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">📆 Doanh Số Tháng Này</div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label>Chọn ngày:</label>
-                            <input type="date" class="form-control" id="ngayThongKe">
-                        </div>
-                        <div class="col-md-2">
-                            <label>&nbsp;</label>
-                            <button class="btn btn-primary form-control" onclick="xemThongKeNgay()">Xem</button>
-                        </div>
-                    </div>
-                    <div id="thongKeNgayData">
-                    </div>
+                    <h3>@ViewBag.DoanhSoThangNay VND</h3>
                 </div>
             </div>
         </div>
 
-        <!-- Thống Kê Theo Tháng -->
-        <div id="thongKeThang" class="tab-pane fade">
-            <div class="card">
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">📅 Doanh Số Năm Nay</div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-2">
-                            <label>Tháng:</label>
-                            <select class="form-select" id="thang">
-                                @for (int i = 1; i <= 12; i++)
-                                {
-                                    <option value="@i">@i</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label>Năm:</label>
-                            <select class="form-select" id="nam">
-                                @for (int i = DateTime.Now.Year; i >= 2020; i--)
-                                {
-                                    <option value="@i">@i</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label>&nbsp;</label>
-                            <button class="btn btn-primary form-control" onclick="xemThongKeThang()">Xem</button>
-                        </div>
-                    </div>
-                    <div id="thongKeThangData">
-                    </div>
+                    <h3>@ViewBag.DoanhSoNamNay VND</h3>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-@section Scripts {
-    <script src="~/js/baocao.js"></script>
-} 
+    <!-- Sản phẩm bán chạy -->
+    <h3 class="mt-4">🔥 Sản Phẩm Bán Chạy</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Tên Sản Phẩm</th>
+                <th>Số Lượng Bán</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (sanPhamBanChay != null && sanPhamBanChay.Count > 0)
+            {
+                int i = 1;
+                foreach (var sp in sanPhamBanChay)
+                {
+                    <tr>
+                        <td>@i</td>
+                        <td>@sp.TenSP</td>
+                        <td>@sp.SoLuongBan</td>
+                    </tr>
+                    i++;
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="3" class="text-center text-muted">Không có dữ liệu</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
