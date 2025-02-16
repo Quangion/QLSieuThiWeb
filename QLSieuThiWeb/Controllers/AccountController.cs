@@ -1,20 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QLSieuThiWeb.Data;
+using Microsoft.Data.SqlClient;
 using QLSieuThiWeb.Models;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Security.Claims;
 
 namespace QLSieuThiWeb.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly string _connectionString;
 
-        public AccountController(ApplicationDbContext context)
+        public AccountController(IConfiguration configuration)
         {
-            _context = context;
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
         // GET: Account/Login
@@ -25,44 +21,49 @@ namespace QLSieuThiWeb.Controllers
 
         // POST: Account/Login
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(TKMK model)
+        public IActionResult Login(string username, string password)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var user = await _context.TKMK
-                    .FirstOrDefaultAsync(m => m.TK == model.TK && m.MK == model.MK);
-
-                if (user != null)
+                using (SqlConnection conn = new SqlConnection(_connectionString))
                 {
-                    var claims = new List<Claim>
+                    conn.Open();
+                    string query = "SELECT * FROM TKMK WHERE TK = @username AND MK = @password";
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
-                        new Claim(ClaimTypes.Name, user.TK),
-                        new Claim(ClaimTypes.Role, "User")
-                    };
+                        cmd.Parameters.AddWithValue("@username", username);
+                        cmd.Parameters.AddWithValue("@password", password);
 
-                    var claimsIdentity = new ClaimsIdentity(
-                        claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                // Lưu thông tin vào Session
+                                HttpContext.Session.SetString("Username", username);
+                                HttpContext.Session.SetString("quyen", reader["quyen"].ToString());
 
-                    await HttpContext.SignInAsync(
-                        CookieAuthenticationDefaults.AuthenticationScheme,
-                        new ClaimsPrincipal(claimsIdentity));
 
-                    return RedirectToAction("Index", "Home");
+                                return Json(new { success = true, redirectUrl = Url.Action("Index", "Home") });
+                            }
+                            else
+                            {
+                                return Json(new { success = false, message = "Tài khoản hoặc mật khẩu không đúng!" });
+                            }
+                        }
+                    }
                 }
-
-                ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng");
             }
-
-            return View(model);
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
         }
 
         // POST: Account/Logout
-        [HttpPost]
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "Home");
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
         }
     }
 }

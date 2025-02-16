@@ -118,7 +118,10 @@
             const gia = option.dataset.gia;
             row.querySelector('.dongia-input').value = formatMoney(gia);
             tinhThanhTien(row.querySelector('.soluong-input'));
-            selectedProducts.add(select.value);
+
+            // Thêm mã sản phẩm vào tập các sản phẩm đã chọn
+            const maSP = select.value;
+            selectedProducts.add(maSP);
             capNhatDanhSachSanPham();
         }
 
@@ -126,7 +129,8 @@
             document.querySelectorAll('.sanpham-select').forEach(select => {
                 const currentValue = select.value;
                 select.querySelectorAll('option').forEach(option => {
-                    if (selectedProducts.has(option.value) && option.value !== currentValue) {
+                    const maSP = option.value;
+                    if (selectedProducts.has(maSP) && maSP !== currentValue) {
                         option.disabled = true;
                     } else {
                         option.disabled = false;
@@ -207,6 +211,8 @@
             });
         };
         themSanPham();
+
+
     </script>
 
 }

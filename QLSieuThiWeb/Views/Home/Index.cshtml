@@ -16,121 +16,145 @@
     </div>
 
     <div class="row mt-5">
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-shopping-cart fa-3x mb-3"></i>
-                    <h3>Hóa Đơn</h3>
-                    <p>Lập hóa đơn mới</p>
-                    <a href="/HoaDon" class="btn btn-primary">Truy Cập</a>
+        @if (ViewBag.quyen != "admin")
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                        <h3>Hóa Đơn</h3>
+                        <p>Lập hóa đơn mới</p>
+                        <a href="/HoaDon" class="btn btn-primary">Truy Cập</a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-users fa-3x mb-3"></i>
-                    <h3>Quản Lý Khách Hàng</h3>
-                    <p>Theo dõi thông tin và lịch sử mua hàng của khách</p>
-                    <a href="/KhachHang" class="btn btn-primary">Truy Cập</a>
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x mb-3"></i>
+                        <h3>Quản Lý Khách Hàng</h3>
+                        <p>Theo dõi thông tin và lịch sử mua hàng của khách</p>
+                        <a href="/KhachHang" class="btn btn-primary">Truy Cập</a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-box fa-3x mb-3"></i>
-                    <h3>Quản Lý Kho</h3>
-                    <p>Kiểm soát hàng tồn kho và nhập hàng</p>
-                    <a href="/Kho" class="btn btn-primary">Truy Cập</a>
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-invoice fa-3x mb-3"></i>
+                        <h3>Quản Lý Hóa Đơn</h3>
+                        <p>Xem và quản lý các hóa đơn đã lập</p>
+                        <a href="/QuanLyHoaDon" class="btn btn-primary">Truy Cập</a>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-boxes fa-3x mb-3"></i>
+                        <h3>Quản Lý Sản Phẩm</h3>
+                        <p>Cập nhật thông tin và giá sản phẩm</p>
+                        <a href="/SanPham" class="btn btn-primary">Truy Cập</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-box fa-3x mb-3"></i>
+                        <h3>Quản Lý Kho</h3>
+                        <p>Kiểm soát hàng tồn kho và nhập hàng</p>
+                        <a href="/Kho" class="btn btn-primary">Truy Cập</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                        <h3>Báo Cáo Thống Kê</h3>
+                        <p>Xem báo cáo doanh thu và thống kê</p>
+                        <a href="/BaoCao" class="btn btn-primary">Truy Cập</a>
+                    </div>
+                </div>
+            </div>
+
+        }
     </div>
 
     <div class="row mt-4">
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-file-invoice fa-3x mb-3"></i>
-                    <h3>Quản Lý Hóa Đơn</h3>
-                    <p>Xem và quản lý các hóa đơn đã lập</p>
-                    <a href="/QuanLyHoaDon" class="btn btn-primary">Truy Cập</a>
+        @if (ViewBag.quyen == "admin" )
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-box fa-3x mb-3"></i>
+                        <h3>Quản Lý Kho</h3>
+                        <p>Kiểm soát hàng tồn kho và nhập hàng</p>
+                        <a href="/Kho" class="btn btn-primary">Truy Cập</a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-boxes fa-3x mb-3"></i>
-                    <h3>Quản Lý Sản Phẩm</h3>
-                    <p>Cập nhật thông tin và giá sản phẩm</p>
-                    <a href="/SanPham" class="btn btn-primary">Truy Cập</a>
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                        <h3>Báo Cáo Thống Kê</h3>
+                        <p>Xem báo cáo doanh thu và thống kê</p>
+                        <a href="/BaoCao" class="btn btn-primary">Truy Cập</a>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-chart-bar fa-3x mb-3"></i>
-                    <h3>Báo Cáo Thống Kê</h3>
-                    <p>Xem báo cáo doanh thu và thống kê</p>
-                    <a href="/BaoCao" class="btn btn-primary">Truy Cập</a>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 </div>
 
 <style>
-.welcome-text {
-    color: #2a5298;
-    font-weight: bold;
-    margin-bottom: 2rem;
-}
+    .welcome-text {
+        color: #2a5298;
+        font-weight: bold;
+        margin-bottom: 2rem;
+    }
 
-.feature-card {
-    transition: transform 0.3s ease;
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
+    .feature-card {
+        transition: transform 0.3s ease;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
 
-.feature-card:hover {
-    transform: translateY(-10px);
-}
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
 
-.feature-card i {
-    color: #2a5298;
-}
+        .feature-card i {
+            color: #2a5298;
+        }
 
-.feature-card h3 {
-    color: #333;
-    font-size: 1.5rem;
-    margin: 1rem 0;
-}
+        .feature-card h3 {
+            color: #333;
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
 
-.feature-card p {
-    color: #666;
-}
+        .feature-card p {
+            color: #666;
+        }
 
-.btn-primary {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    border: none;
-    padding: 0.5rem 2rem;
-    border-radius: 25px;
-}
+    .btn-primary {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border: none;
+        padding: 0.5rem 2rem;
+        border-radius: 25px;
+    }
 
-.btn-primary:hover {
-    background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
-    transform: translateY(-2px);
-}
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            transform: translateY(-2px);
+        }
 </style>
-
-
-
-

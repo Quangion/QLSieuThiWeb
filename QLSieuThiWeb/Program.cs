@@ -1,26 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using QLSieuThiWeb.Data;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<QLSieuThiWebContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("QLSieuThiWebContext") ?? throw new InvalidOperationException("Connection string 'QLSieuThiWebContext' not found.")));
-
-// Thêm DbContext
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Thêm Authentication
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied";
-    });
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Thêm cấu hình Session
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -28,7 +20,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -37,11 +28,19 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();
+// Thêm middleware Session trước UseAuthorization
+app.UseSession();
+
+app.UseAuthentication();  // Thêm dòng này để kích hoạt xác thực nếu bạn dùng
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
+    pattern: "{controller=Account}/{action=Login}/{id?}");
+
+app.MapControllerRoute(
+    name: "account",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-    //pattern: "{controller=Account}/{action=Login}/{id?}");
+
 app.Run();

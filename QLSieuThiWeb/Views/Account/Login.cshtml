@@ -7,36 +7,78 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Đăng nhập</title>
+    <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/login.css" />
+    
 </head>
-<body>
+
+<body >
+    
     <div class="login_form_container">
-        <form asp-action="Login" class="login_form">
+        <div class="login_form">
             <h2>Đăng nhập</h2>
-            <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
-
-            <div class="input_group">
-                <i class="fa fa-user"></i>
-                <input asp-for="TK" class="input_text" placeholder="Tài khoản" autocomplete="off" />
-            </div>
-
-            <div class="input_group">
-                <i class="fa fa-unlock-alt"></i>
-                <input asp-for="MK" class="input_text" type="password" placeholder="Mật khẩu" autocomplete="off" />
-            </div>
-
-            <div class="button_group">
-                <button type="submit">Đăng nhập</button>
-            </div>
-        </form>
+            <form id="loginForm">
+                <div class="input_group">
+                    <i class="fa fa-user"></i>
+                    <input type="text" placeholder="Tài khoản" class="input_text" id="username" autocomplete="off" required />
+                </div>
+                <div class="input_group">
+                    <i class="fa fa-unlock-alt"></i>
+                    <input type="password" placeholder="Mật khẩu" class="input_text" id="password" autocomplete="off" required />
+                </div>
+                <div class="button_group" id="login_button">
+                    <button type="submit" >Đăng nhập</button>
+                </div>
+            </form>
+            
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-    <script src="~/js/login.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#loginForm').on('submit', function(e) {
+                e.preventDefault();
+
+                var username = $('#username').val();
+                var password = $('#password').val();
+
+                $.ajax({
+                    url: '@Url.Action("Login", "Account")',
+                    type: 'POST',
+                    data: {
+                        username: username,
+                        password: password
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.href = response.redirectUrl;
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Đã xảy ra lỗi khi đăng nhập!');
+                    }
+                });
+            });
+        });
+
+        $(".input_text").focus(function () {
+            $(this).prev('.fa').addClass('glowIcon');
+        });
+
+        $(".input_text").focusout(function () {
+            $(this).prev('.fa').removeClass('glowIcon');
+        });
+    </script>
 </body>
-</html> 
+
+</html>

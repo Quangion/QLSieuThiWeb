@@ -76,14 +76,18 @@
 
 <script>
      // Thiết lập giá trị mặc định của ô nhập liệu ngày là hôm nay
-    document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function() {
         var today = new Date();
         var day = String(today.getDate()).padStart(2, '0');
         var month = String(today.getMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0
         var year = today.getFullYear();
         var todayString = year + '-' + month + '-' + day;
-        document.getElementById('datePicker').value = todayString;
+        var datePicker = document.getElementById('datePicker');
+        datePicker.value = todayString;
+        // Kích hoạt sự kiện change để lấy dữ liệu doanh số cho hôm nay
+        datePicker.dispatchEvent(new Event('change'));
     });
+
     // thiết lập sự kiện thay đổi ngày
     document.getElementById("datePicker").addEventListener("change", function () {
         var selectedDate = this.value;

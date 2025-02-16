@@ -19,6 +19,7 @@
             </button>
             <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
                 <ul class="navbar-nav w-100 justify-content-evenly">
+                    @if(ViewBag.quyen != "admin"){
                     <li class="nav-item">
                         <a class="nav-link" href="/HoaDon">
                             <i class="fas fa-file-invoice"></i> Hóa Đơn
@@ -33,6 +34,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/SanPham">Quản Lý Sản Phẩm</a>
                     </li>
+                    }
                     <li class="nav-item">
                         <a class="nav-link" href="/Kho">Quản Lý Kho</a>
                     </li>
