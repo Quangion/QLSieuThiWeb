@@ -65,4 +65,4 @@ namespace QLSieuThiWeb.Controllers
             return RedirectToAction("Index", "Home");
         }
     }
-} 
+}

@@ -74,7 +74,7 @@
             </select>
         </td>
         <td>
-            <input type="number" class="form-control soluong-input" min="1" required onchange="tinhThanhTien(this)">
+            <input type="number" class="form-control soluong-input" min="1" value="1" required onchange="tinhThanhTien(this)">
         </td>
         <td>
             <input type="text" class="form-control dongia-input" readonly>
@@ -92,14 +92,23 @@
 
 @section Scripts {
     <script>
+        let selectedProducts = new Set();
+
         function themSanPham() {
             const template = document.getElementById('templateSanPham');
             const newRow = template.content.cloneNode(true);
             document.querySelector('#tableSanPham tbody').appendChild(newRow);
+            capNhatDanhSachSanPham();
         }
 
         function xoaSanPham(button) {
-            button.closest('tr').remove();
+            const row = button.closest('tr');
+            const select = row.querySelector('.sanpham-select');
+            if (select && select.value) {
+                selectedProducts.delete(select.value);
+            }
+            row.remove();
+            capNhatDanhSachSanPham();
             tinhTongTien();
         }
 
@@ -109,6 +118,21 @@
             const gia = option.dataset.gia;
             row.querySelector('.dongia-input').value = formatMoney(gia);
             tinhThanhTien(row.querySelector('.soluong-input'));
+            selectedProducts.add(select.value);
+            capNhatDanhSachSanPham();
+        }
+
+        function capNhatDanhSachSanPham() {
+            document.querySelectorAll('.sanpham-select').forEach(select => {
+                const currentValue = select.value;
+                select.querySelectorAll('option').forEach(option => {
+                    if (selectedProducts.has(option.value) && option.value !== currentValue) {
+                        option.disabled = true;
+                    } else {
+                        option.disabled = false;
+                    }
+                });
+            });
         }
 
         function tinhThanhTien(input) {
@@ -184,4 +208,5 @@
         };
         themSanPham();
     </script>
+
 }

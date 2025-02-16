@@ -19,17 +19,17 @@
         <form asp-action="Login" class="login_form">
             <h2>Đăng nhập</h2>
             <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
-            
+
             <div class="input_group">
                 <i class="fa fa-user"></i>
                 <input asp-for="TK" class="input_text" placeholder="Tài khoản" autocomplete="off" />
             </div>
-            
+
             <div class="input_group">
                 <i class="fa fa-unlock-alt"></i>
                 <input asp-for="MK" class="input_text" type="password" placeholder="Mật khẩu" autocomplete="off" />
             </div>
-            
+
             <div class="button_group">
                 <button type="submit">Đăng nhập</button>
             </div>

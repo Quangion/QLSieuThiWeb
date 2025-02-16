@@ -24,6 +24,21 @@ public class BaoCaoController : Controller
         return View();
     }
 
+    [HttpGet]
+    public async Task<JsonResult> GetDoanhSoTheoNgay(string date)
+    {
+        if (!DateTime.TryParse(date, out DateTime selectedDate))
+        {
+            return Json(new { ngay = 0, thang = 0, nam = 0 });
+        }
+
+        var doanhSoNgay = await GetDoanhSo("ngay", selectedDate);
+        var doanhSoThang = await GetDoanhSo("thang", selectedDate);
+        var doanhSoNam = await GetDoanhSo("nam", selectedDate);
+
+        return Json(new { ngay = doanhSoNgay, thang = doanhSoThang, nam = doanhSoNam });
+    }
+
     private async Task<List<dynamic>> GetSanPhamBanChay()
     {
         List<dynamic> sanPhamBanChay = new List<dynamic>();

@@ -15,5 +15,6 @@ namespace QLSieuThiWeb.Models
         [DataType(DataType.Password)]
         [StringLength(100, MinimumLength = 3, ErrorMessage = "Mật khẩu phải từ 3-100 ký tự")]
         public string MK { get; set; }
+        public string quyen { get; set; }
     }
 }

@@ -2,17 +2,20 @@
     ViewData["Title"] = "Báo Cáo Doanh Số";
     var sanPhamBanChay = ViewBag.SanPhamBanChay as List<dynamic>;
 }
-
 <div class="container mt-4">
     <h2 class="text-center">📊 Báo Cáo Doanh Số</h2>
 
+    <div class="mb-3 pt-5" style=" width: 300px;  ">
+        <label for="datePicker" class="form-label">Chọn ngày:</label>
+        <input type="date" id="datePicker" class="form-control" style="border: 1px solid blue" />
+    </div>
+
     <div class="row">
-        <!-- Tổng doanh số -->
         <div class="col-md-4">
             <div class="card text-white bg-primary mb-3">
                 <div class="card-header">💰 Doanh Số Hôm Nay</div>
                 <div class="card-body">
-                    <h3>@ViewBag.DoanhSoHomNay VND</h3>
+                    <h3 id="doanhSoNgay">@ViewBag.DoanhSoHomNay VND</h3>
                 </div>
             </div>
         </div>
@@ -21,7 +24,7 @@
             <div class="card text-white bg-success mb-3">
                 <div class="card-header">📆 Doanh Số Tháng Này</div>
                 <div class="card-body">
-                    <h3>@ViewBag.DoanhSoThangNay VND</h3>
+                    <h3 id="doanhSoThang">@ViewBag.DoanhSoThangNay VND</h3>
                 </div>
             </div>
         </div>
@@ -30,18 +33,17 @@
             <div class="card text-white bg-warning mb-3">
                 <div class="card-header">📅 Doanh Số Năm Nay</div>
                 <div class="card-body">
-                    <h3>@ViewBag.DoanhSoNamNay VND</h3>
+                    <h3 id="doanhSoNam">@ViewBag.DoanhSoNamNay VND</h3>
                 </div>
             </div>
         </div>
     </div>
-
     <!-- Sản phẩm bán chạy -->
     <h3 class="mt-4">🔥 Sản Phẩm Bán Chạy</h3>
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>#</th>
+                <th>STT</th>
                 <th>Tên Sản Phẩm</th>
                 <th>Số Lượng Bán</th>
             </tr>
@@ -54,6 +56,7 @@
                 {
                     <tr>
                         <td>@i</td>
+                        <td>@sp.MaSP</td>
                         <td>@sp.TenSP</td>
                         <td>@sp.SoLuongBan</td>
                     </tr>
@@ -69,3 +72,28 @@
         </tbody>
     </table>
 </div>
+</div>
+
+<script>
+     // Thiết lập giá trị mặc định của ô nhập liệu ngày là hôm nay
+    document.addEventListener("DOMContentLoaded", function() {
+        var today = new Date();
+        var day = String(today.getDate()).padStart(2, '0');
+        var month = String(today.getMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0
+        var year = today.getFullYear();
+        var todayString = year + '-' + month + '-' + day;
+        document.getElementById('datePicker').value = todayString;
+    });
+    // thiết lập sự kiện thay đổi ngày
+    document.getElementById("datePicker").addEventListener("change", function () {
+        var selectedDate = this.value;
+        fetch(`/BaoCao/GetDoanhSoTheoNgay?date=${selectedDate}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("doanhSoNgay").innerText = data.ngay + " VND";
+                document.getElementById("doanhSoThang").innerText = data.thang + " VND";
+                document.getElementById("doanhSoNam").innerText = data.nam + " VND";
+            });
+    });
+</script>
+
