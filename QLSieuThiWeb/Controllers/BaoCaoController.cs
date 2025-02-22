@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using QLSieuThiWeb.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,6 +12,7 @@ public class BaoCaoController : Controller
 
     public async Task<IActionResult> Index()
     {
+        ViewBag.Quyen = UserSession.Quyen;
         var sanPhamBanChay = await GetSanPhamBanChay();
         var doanhSoHomNay = await GetDoanhSo("ngay", DateTime.Now);
         var doanhSoThangNay = await GetDoanhSo("thang", DateTime.Now);

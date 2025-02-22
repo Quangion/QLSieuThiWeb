@@ -6,35 +6,35 @@
         </button>
         <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
             <ul class="navbar-nav w-100 justify-content-evenly">
-                @if (ViewBag.quyen != "admin")
+                
+                @if ( ViewBag.quyen != "admin")
                 {
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "HoaDon" ? "active" : "")" 
-                        href="/HoaDon">Hóa Đơn</a>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "HoaDon" ? "active" : "")"
+                           href="/HoaDon">Hóa Đơn</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "QuanLyHoaDon" ? "active" : "")" 
-                        href="/QuanLyHoaDon">Quản Lý Hóa Đơn</a>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "QuanLyHoaDon" ? "active" : "")"
+                           href="/QuanLyHoaDon">Quản Lý Hóa Đơn</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "KhachHang" ? "active" : "")" 
-                        href="/KhachHang">Quản Lý Khách Hàng</a>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "KhachHang" ? "active" : "")"
+                           href="/KhachHang">Quản Lý Khách Hàng</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "SanPham" ? "active" : "")" 
-                        href="/SanPham">Quản Lý Sản Phẩm</a>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "SanPham" ? "active" : "")"
+                           href="/SanPham">Quản Lý Sản Phẩm</a>
                     </li>
                 }
-                    <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Kho" ? "active" : "")" 
-                        href="/Kho">Quản Lý Kho</a>
-                    </li>
-                
-                
                 <li class="nav-item">
-                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "BaoCao" ? "active" : "")" 
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Kho" ? "active" : "")"
+                       href="/Kho">Quản Lý Kho</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "BaoCao" ? "active" : "")"
                        href="/BaoCao">Báo Cáo Thống Kê</a>
                 </li>
+
             </ul>
         </div>
     </div>

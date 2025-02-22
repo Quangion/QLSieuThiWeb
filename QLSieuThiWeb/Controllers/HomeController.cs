@@ -15,7 +15,8 @@ namespace QLSieuThiWeb.Controllers
 
         public IActionResult Index()
         {
-            ViewBag.Quyen = HttpContext.Session.GetString("quyen") ?? "user";
+            ViewBag.Quyen = UserSession.Quyen;
+
             return View();
         }
 

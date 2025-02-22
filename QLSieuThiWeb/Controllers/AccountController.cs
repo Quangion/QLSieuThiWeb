@@ -16,6 +16,7 @@ namespace QLSieuThiWeb.Controllers
         // GET: Account/Login
         public IActionResult Login()
         {
+            
             return View();
         }
 
@@ -39,8 +40,8 @@ namespace QLSieuThiWeb.Controllers
                             if (reader.Read())
                             {
                                 // Lưu thông tin vào Session
-                                HttpContext.Session.SetString("Username", username);
-                                HttpContext.Session.SetString("quyen", reader["quyen"].ToString());
+                                UserSession.Username = username;
+                                UserSession.Quyen = reader["Quyen"].ToString();
 
 
                                 return Json(new { success = true, redirectUrl = Url.Action("Index", "Home") });
