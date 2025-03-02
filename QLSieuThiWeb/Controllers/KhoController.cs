@@ -1,268 +1,204 @@
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Data.SqlClient;
-    using QLSieuThiWeb.Models;
-    using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using QLSieuThiWeb.Data;
+using QLSieuThiWeb.Models;
+using Microsoft.Extensions.Logging;
 
-    namespace QLSieuThiWeb.Controllers
+namespace QLSieuThiWeb.Controllers
+{
+    public class KhoController : Controller
     {
-        public class KhoController : Controller
+        private readonly QLSieuThiWebContext _context;
+        private readonly ILogger<KhoController> _logger;
+
+        public KhoController(QLSieuThiWebContext context, ILogger<KhoController> logger)
         {
-            private readonly string _connectionString;
+            _context = context;
+            _logger = logger;
+        }
 
-            public KhoController(IConfiguration configuration)
+        public IActionResult Index()
+        {
+            ViewBag.Quyen = UserSession.Quyen;
+
+            List<sanPham> model = new List<sanPham>();
+            try
             {
-                _connectionString = configuration.GetConnectionString("DefaultConnection");
+                model = _context.sanPham
+                    .OrderBy(sp => sp.maSP)
+                    .ToList();
             }
-
-            public IActionResult Index()
+            catch (Exception ex)
             {
-                ViewBag.Quyen = UserSession.Quyen;
-
-                // Thực hiện các logic cần thiết khác
-            
-                List<sanPham> model = new List<sanPham>();
-                try
-                {
-                    using (SqlConnection conn = new SqlConnection(_connectionString))
-                    {
-                        conn.Open();
-                        string query = "SELECT * FROM sanPham ORDER BY maSP";
-                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                        {
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                while (reader.Read())
-                                {
-                                    model.Add(new sanPham
-                                    {
-                                        maSP = reader["maSP"].ToString(),
-                                        tenSP = reader["tenSP"].ToString(),
-                                        soLuong = Convert.ToInt32(reader["soLuong"]),
-                                        gia = Convert.ToDecimal(reader["gia"])
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    TempData["ErrorMessage"] = "Lỗi khi tải dữ liệu: " + ex.Message;
-                }
-                return View(model);
+                _logger.LogError("Lỗi khi tải danh sách sản phẩm: " + ex.Message);
+                TempData["ErrorMessage"] = "Lỗi khi tải dữ liệu: " + ex.Message;
             }
+            return View(model);
+        }
 
-            [HttpGet]
-            public IActionResult GetDanhSachSanPham()
+        [HttpGet]
+        public IActionResult GetDanhSachSanPham()
+        {
+            try
             {
-                try
-                {
-                    List<sanPham> danhSachSP = new List<sanPham>();
-                    using (SqlConnection conn = new SqlConnection(_connectionString))
-                    {
-                        conn.Open();
-                        string query = "SELECT * FROM sanPham ORDER BY maSP";
-                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                        {
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                while (reader.Read())
-                                {
-                                    danhSachSP.Add(new sanPham
-                                    {
-                                        maSP = reader["maSP"].ToString(),
-                                        tenSP = reader["tenSP"].ToString(),
-                                        soLuong = Convert.ToInt32(reader["soLuong"]),
-                                        gia = Convert.ToDecimal(reader["gia"])
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    return Json(new { success = true, data = danhSachSP });
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = ex.Message });
-                }
+                var danhSachSP = _context.sanPham
+                    .OrderBy(sp => sp.maSP)
+                    .ToList();
+                return Json(new { success = true, data = danhSachSP });
             }
-
-            [HttpPost]
-            public IActionResult UpdateStock([FromBody] StockUpdate data)
+            catch (Exception ex)
             {
-                try
-                {
-                    using (SqlConnection conn = new SqlConnection(_connectionString))
-                    {
-                        conn.Open();
-                        string query = "UPDATE sanPham SET soLuong = @soLuong WHERE maSP = @maSP";
-                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                        {
-                            cmd.Parameters.AddWithValue("@maSP", data.maSP);
-                            cmd.Parameters.AddWithValue("@soLuong", data.soLuong);
-
-                            int result = cmd.ExecuteNonQuery();
-                            if (result > 0)
-                            {
-                                return Json(new { success = true, message = "Cập nhật kho thành công!" });
-                            }
-                            else
-                            {
-                                return Json(new { success = false, message = "Không tìm thấy sản phẩm!" });
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = "Lỗi: " + ex.Message });
-                }
-            }
-
-            [HttpPost]
-            public IActionResult ClearStock([FromBody] string maSP)
-            {
-                try
-                {
-                    using (SqlConnection conn = new SqlConnection(_connectionString))
-                    {
-                        conn.Open();
-                        string query = "UPDATE sanPham SET soLuong = 0 WHERE maSP = @maSP";
-                        using (SqlCommand cmd = new SqlCommand(query, conn))
-                        {
-                            cmd.Parameters.AddWithValue("@maSP", maSP);
-
-                            int result = cmd.ExecuteNonQuery();
-                            if (result > 0)
-                            {
-                                return Json(new { success = true, message = "Đã xả kho thành công!" });
-                            }
-                            else
-                            {
-                                return Json(new { success = false, message = "Không tìm thấy sản phẩm!" });
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = "Lỗi: " + ex.Message });
-                }
-            }
-
-            [HttpPost]
-            public IActionResult NhapKho([FromBody] NhapKhoModel model)
-            {
-                try
-                {
-                    using (SqlConnection conn = new SqlConnection(_connectionString))
-                    {
-                        conn.Open();
-                        using (SqlTransaction transaction = conn.BeginTransaction())
-                        {
-                            try
-                            {
-                                string updateQuery = "UPDATE sanPham SET soLuong = soLuong + @soLuongNhap WHERE maSP = @maSP";
-                                using (SqlCommand cmd = new SqlCommand(updateQuery, conn, transaction))
-                                {
-                                    cmd.Parameters.AddWithValue("@maSP", model.MaSP);
-                                    cmd.Parameters.AddWithValue("@soLuongNhap", model.SoLuongNhap);
-                                    int rowsAffected = cmd.ExecuteNonQuery();
-
-                                    if (rowsAffected == 0)
-                                    {
-                                        throw new Exception("Không tìm thấy sản phẩm!");
-                                    }
-                                }
-                                transaction.Commit();
-                                return Json(new { success = true, message = "Nhập kho thành công!" });
-                            }
-                            catch (Exception ex)
-                            {
-                                transaction.Rollback();
-                                throw ex;
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = "Lỗi nhập kho: " + ex.Message });
-                }
-            }
-
-            [HttpPost]
-            public IActionResult XuatKho([FromBody] XuatKhoModel model)
-            {
-                try
-                {
-                    using (SqlConnection conn = new SqlConnection(_connectionString))
-                    {
-                        conn.Open();
-                        using (SqlTransaction transaction = conn.BeginTransaction())
-                        {
-                            try
-                            {
-                                // Kiểm tra số lượng tồn kho
-                                string checkQuery = "SELECT soLuong FROM sanPham WHERE maSP = @maSP";
-                                int tonKho;
-                                using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
-                                {
-                                    checkCmd.Parameters.AddWithValue("@maSP", model.MaSP);
-                                    tonKho = Convert.ToInt32(checkCmd.ExecuteScalar());
-                                }
-
-                                if (tonKho < model.SoLuongXuat)
-                                {
-                                    throw new Exception("Số lượng xuất vượt quá số lượng tồn kho!");
-                                }
-
-                                // Cập nhật số lượng
-                                string updateQuery = "UPDATE sanPham SET soLuong = soLuong - @soLuongXuat WHERE maSP = @maSP";
-                                using (SqlCommand cmd = new SqlCommand(updateQuery, conn, transaction))
-                                {
-                                    cmd.Parameters.AddWithValue("@maSP", model.MaSP);
-                                    cmd.Parameters.AddWithValue("@soLuongXuat", model.SoLuongXuat);
-                                    int rowsAffected = cmd.ExecuteNonQuery();
-
-                                    if (rowsAffected == 0)
-                                    {
-                                        throw new Exception("Không tìm thấy sản phẩm!");
-                                    }
-                                }
-                                transaction.Commit();
-                                return Json(new { success = true, message = "Xuất kho thành công!" });
-                            }
-                            catch (Exception ex)
-                            {
-                                transaction.Rollback();
-                                throw ex;
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = "Lỗi xuất kho: " + ex.Message });
-                }
+                _logger.LogError("Lỗi khi tải danh sách sản phẩm: " + ex.Message);
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
-        public class StockUpdate
+        [HttpPost]
+        public IActionResult UpdateStock([FromBody] StockUpdate data)
         {
-            public string maSP { get; set; }
-            public string soLuong { get; set; }
+            try
+            {
+                // Kiểm tra dữ liệu đầu vào
+                if (data == null || string.IsNullOrEmpty(data.maSP) || string.IsNullOrEmpty(data.soLuong))
+                {
+                    return Json(new { success = false, message = "Dữ liệu gửi lên không hợp lệ!" });
+                }
+
+                // Chuyển đổi soLuong từ string sang int
+                if (!int.TryParse(data.soLuong, out int soLuong) || soLuong < 0)
+                {
+                    return Json(new { success = false, message = "Số lượng không hợp lệ!" });
+                }
+
+                var sanPham = _context.sanPham.FirstOrDefault(sp => sp.maSP == data.maSP);
+                if (sanPham == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy sản phẩm!" });
+                }
+
+                sanPham.soLuong = soLuong; // soLuong giờ là int?
+                int result = _context.SaveChanges();
+
+                return Json(new { success = result > 0, message = "Cập nhật kho thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Lỗi khi cập nhật kho: " + ex.Message);
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
         }
 
-        public class NhapKhoModel
+        [HttpPost]
+        public IActionResult ClearStock([FromBody] string maSP)
         {
-            public string MaSP { get; set; }
-            public int SoLuongNhap { get; set; }
+            try
+            {
+                // Kiểm tra dữ liệu đầu vào
+                if (string.IsNullOrEmpty(maSP))
+                {
+                    return Json(new { success = false, message = "Mã sản phẩm không hợp lệ!" });
+                }
+
+                var sanPham = _context.sanPham.FirstOrDefault(sp => sp.maSP == maSP);
+                if (sanPham == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy sản phẩm!" });
+                }
+
+                sanPham.soLuong = 0; // soLuong giờ là int?
+                int result = _context.SaveChanges();
+
+                return Json(new { success = result > 0, message = "Đã xả kho thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Lỗi khi xả kho: " + ex.Message);
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
         }
 
-        public class XuatKhoModel
+        [HttpPost]
+        public IActionResult NhapKho([FromBody] NhapKhoModel model)
         {
-            public string MaSP { get; set; }
-            public int SoLuongXuat { get; set; }
+            try
+            {
+                // Kiểm tra dữ liệu đầu vào
+                if (model == null || string.IsNullOrEmpty(model.MaSP) || model.SoLuongNhap <= 0)
+                {
+                    return Json(new { success = false, message = "Dữ liệu gửi lên không hợp lệ!" });
+                }
+
+                var sanPham = _context.sanPham.FirstOrDefault(sp => sp.maSP == model.MaSP);
+                if (sanPham == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy sản phẩm!" });
+                }
+
+                // soLuong là int?, kiểm tra null trước khi tính toán
+                sanPham.soLuong = (sanPham.soLuong ?? 0) + model.SoLuongNhap;
+                int result = _context.SaveChanges();
+
+                return Json(new { success = result > 0, message = "Nhập kho thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Lỗi khi nhập kho: " + ex.Message);
+                return Json(new { success = false, message = "Lỗi nhập kho: " + ex.Message });
+            }
         }
-    } 
+
+        [HttpPost]
+        public IActionResult XuatKho([FromBody] XuatKhoModel model)
+        {
+            try
+            {
+                // Kiểm tra dữ liệu đầu vào
+                if (model == null || string.IsNullOrEmpty(model.MaSP) || model.SoLuongXuat <= 0)
+                {
+                    return Json(new { success = false, message = "Dữ liệu gửi lên không hợp lệ!" });
+                }
+
+                var sanPham = _context.sanPham.FirstOrDefault(sp => sp.maSP == model.MaSP);
+                if (sanPham == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy sản phẩm!" });
+                }
+
+                // soLuong là int?, kiểm tra null trước khi tính toán
+                int tonKho = sanPham.soLuong ?? 0;
+                if (tonKho < model.SoLuongXuat)
+                {
+                    return Json(new { success = false, message = "Số lượng xuất vượt quá số lượng tồn kho!" });
+                }
+
+                sanPham.soLuong = tonKho - model.SoLuongXuat;
+                int result = _context.SaveChanges();
+
+                return Json(new { success = result > 0, message = "Xuất kho thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Lỗi khi xuất kho: " + ex.Message);
+                return Json(new { success = false, message = "Lỗi xuất kho: " + ex.Message });
+            }
+        }
+    }
+
+    public class StockUpdate
+    {
+        public string maSP { get; set; }
+        public string soLuong { get; set; }
+    }
+
+    public class NhapKhoModel
+    {
+        public string MaSP { get; set; }
+        public int SoLuongNhap { get; set; }
+    }
+
+    public class XuatKhoModel
+    {
+        public string MaSP { get; set; }
+        public int SoLuongXuat { get; set; }
+    }
+}

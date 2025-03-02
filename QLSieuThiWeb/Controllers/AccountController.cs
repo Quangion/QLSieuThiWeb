@@ -44,7 +44,7 @@ namespace QLSieuThiWeb.Controllers
                                 UserSession.Quyen = reader["Quyen"].ToString();
 
 
-                                return Json(new { success = true, redirectUrl = Url.Action("Index", "Home") });
+                                return Json(new { success = true, redirectUrl = Url.Action("Index", "Home"), quyen = UserSession.Quyen });
                             }
                             else
                             {

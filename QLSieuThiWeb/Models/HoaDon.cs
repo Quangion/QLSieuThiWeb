@@ -1,6 +1,6 @@
-namespace QLSieuThiWeb.Models
+﻿namespace QLSieuThiWeb.Models
 {
-    public class HoaDonViewModel
+    public class HoaDon
     {
         public string MaHD { get; set; }  
         public DateTime ThoiGian { get; set; }

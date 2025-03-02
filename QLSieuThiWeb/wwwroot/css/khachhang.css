@@ -8,7 +8,7 @@
     height: 40px;
 }
 
-#search-box #search-text {
+#search-box #a {
     height: 100%;
     width: 30vh;
     border: none;
@@ -207,4 +207,8 @@
 
 .table tbody tr {
     animation: fadeIn 0.3s ease-in-out;
-} 
+}
+.accordion-header {
+    margin-bottom: 20px;
+    height: 20px;
+}

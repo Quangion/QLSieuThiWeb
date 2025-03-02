@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using QLSieuThiWeb.Models;
 using System;
@@ -40,8 +40,8 @@ public class BaoCaoController : Controller
 
         return Json(new { ngay = doanhSoNgay, thang = doanhSoThang, nam = doanhSoNam });
     }
-
-    private async Task<List<dynamic>> GetSanPhamBanChay()
+    [HttpGet]
+    public async Task<List<dynamic>> GetSanPhamBanChay()
     {
         List<dynamic> sanPhamBanChay = new List<dynamic>();
 
